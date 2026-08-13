@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Title>RaiDiagram</Title>
+		<PackageId>RaiDiagram</PackageId>
+		<Version>4.2.0</Version>
+		<Authors>Rainer Burkhardt</Authors>
+		<Description>Agent-readable semantic diagrams, model reconciliation, and PlantUML rendering for RAIkeep.</Description>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageTags>diagram, UML, PlantUML, SVG, agentic, JSON5</PackageTags>
+		<IsPackable>true</IsPackable>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>HardCastle.png</PackageIcon>
+		<PackageProjectUrl>https://github.com/Burkhardt/RaiDiagram</PackageProjectUrl>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
+		<RepositoryUrl>https://github.com/Burkhardt/RaiDiagram.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageReleaseNotes>Initial RaiDiagram package implementing CR009 for the RAIkeep 4.2 line.</PackageReleaseNotes>
+		<RAIkeepRoot Condition="'$(RAIkeepRoot)' == '' and Exists('../OsLib/OsLib.csproj')">..</RAIkeepRoot>
+		<OsLibProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/OsLib/OsLib.csproj')">$(RAIkeepRoot)/OsLib/OsLib.csproj</OsLibProjectPath>
+		<RaiUtilsProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj')">$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj</RaiUtilsProjectPath>
+		<RaiImageProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/RaiImage/RaiImage.csproj')">$(RAIkeepRoot)/RaiImage/RaiImage.csproj</RaiImageProjectPath>
+		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">false</UseLocalRAIkeepSources>
+		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(OsLibProjectPath)' != '' and '$(RaiUtilsProjectPath)' != '' and '$(RaiImageProjectPath)' != ''">true</UseLocalRAIkeepSources>
+		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == ''">false</UseLocalRAIkeepSources>
+		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.2.0</OsLibPackageVersion>
+		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.2.0</RaiUtilsPackageVersion>
+		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.2.0</RaiImagePackageVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="RaiDiagram.Tests/**/*.cs" />
+		<None Remove="RaiDiagram.Tests/**" />
+		<EmbeddedResource Remove="RaiDiagram.Tests/**" />
+		<PackageReference Include="Json5Core" Version="1.0.12" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<None Include="README.md" Pack="true" PackagePath="\" />
+		<None Include="HardCastle.png" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<Target Name="ValidateLocalRAIkeepSources"
+		BeforeTargets="Restore"
+		Condition="'$(UseLocalRAIkeepSources)' == 'true'">
+		<Error Condition="'$(OsLibProjectPath)' == ''" Text="UseLocalRAIkeepSources=true requires an OsLib project checkout. Set /p:RAIkeepRoot=/path/to/RAIkeep." />
+		<Error Condition="'$(RaiUtilsProjectPath)' == ''" Text="UseLocalRAIkeepSources=true requires a RaiUtils project checkout. Set /p:RAIkeepRoot=/path/to/RAIkeep." />
+		<Error Condition="'$(RaiImageProjectPath)' == ''" Text="UseLocalRAIkeepSources=true requires a RaiImage project checkout. Set /p:RAIkeepRoot=/path/to/RAIkeep." />
+	</Target>
+
+	<ItemGroup Condition="'$(UseLocalRAIkeepSources)' == 'true'">
+		<ProjectReference Include="$(OsLibProjectPath)" />
+		<ProjectReference Include="$(RaiUtilsProjectPath)" />
+		<ProjectReference Include="$(RaiImageProjectPath)" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(UseLocalRAIkeepSources)' != 'true'">
+		<PackageReference Include="OsLibCore" Version="$(OsLibPackageVersion)" />
+		<PackageReference Include="RaiUtils" Version="$(RaiUtilsPackageVersion)" />
+		<PackageReference Include="RaiImage" Version="$(RaiImagePackageVersion)" />
+	</ItemGroup>
+
+</Project>

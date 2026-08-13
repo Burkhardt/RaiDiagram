@@ -1,0 +1,4 @@
+<Solution>
+	<Project Path="RaiDiagram.csproj" />
+	<Project Path="RaiDiagram.Tests/RaiDiagram.Tests.csproj" />
+</Solution>
