@@ -257,6 +257,16 @@ public sealed class DiagramModel
 
 	public DiagramManifest Manifest { get; }
 	public string SemanticHash { get; }
+
+	/// <summary>
+	/// Validates and snapshots an authoritative manifest as an immutable diagram model.
+	/// </summary>
+	public static DiagramModel FromManifest(DiagramManifest manifest)
+	{
+		ArgumentNullException.ThrowIfNull(manifest);
+		var snapshot = RaidJson5.Parse(RaidJson5.Serialize(manifest));
+		return new DiagramModel(snapshot);
+	}
 }
 
 public sealed class DiagramDraft
@@ -318,9 +328,7 @@ public sealed class DiagramDraft
 
 	public DiagramModel ValidateAndFreeze()
 	{
-		manifest.Validate();
-		var clone = RaidJson5.Parse(RaidJson5.Serialize(manifest));
-		return new DiagramModel(clone);
+		return DiagramModel.FromManifest(manifest);
 	}
 
 	private DiagramElement AddElement(string id, string kind, string displayName, string? parentId)

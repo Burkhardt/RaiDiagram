@@ -25,11 +25,43 @@ public class PlantUmlCompilerTests
 		Assert.Contains("usecase \"Schedule rehearsal\"", result.Source);
 		Assert.Contains("package \"Scheduling system\"", result.Source);
 		Assert.Contains("rectangle \"Participants\"", result.Source);
-		Assert.Contains("skinparam handwritten true", result.Source);
-		Assert.Contains("skinparam defaultFontName \"Aptos\"", result.Source);
+		Assert.DoesNotContain("!option", result.Source);
+		Assert.DoesNotContain("!theme", result.Source);
+		Assert.DoesNotContain("<style>", result.Source);
 		Assert.Contains(" : schedules", result.Source);
 		Assert.Equal(DiagramElementKinds.Role,
 			model.Manifest.Projection.Elements.Single(item => item.DisplayName == "Band Manager").Kind);
+	}
+
+	[Fact]
+	public void PumlThemeFile_UsesPlantUmlLocalThemeNamingConvention()
+	{
+		var theme = new PumlThemeFile(new RaiPath("themes"), "raikeep-sketch");
+
+		Assert.Equal("raikeep-sketch", theme.ThemeName);
+		Assert.Equal("puml-theme-raikeep-sketch.puml", theme.NameWithExtension);
+		Assert.Equal("puml-theme-raikeep-sketch.puml", PumlThemeFile.FileNameFor("raikeep-sketch"));
+		Assert.Throws<RaidSchemaException>(() => PumlThemeFile.FileNameFor("../outside"));
+	}
+
+	[Fact]
+	public void StyleProvider_EmitsPresentationAsExternalConfig()
+	{
+		var manifest = TestDiagrams.CreateUseCaseModel().Manifest;
+		manifest.Presentation.Theme = "cerulean";
+		manifest.Presentation.Handwritten = true;
+		manifest.Presentation.FontName = "Chalkduster, Comic Sans MS";
+
+		var source = new DiagramStyleProvider().Resolve(manifest, new PlantUmlCompileOptions()).ToPlantUml();
+
+		Assert.Contains("!theme cerulean", source);
+		Assert.Contains("!option handwritten true", source);
+		Assert.Contains("FontName Chalkduster, Comic Sans MS", source);
+		Assert.DoesNotContain("skinparam defaultFontName", source);
+
+		manifest.Presentation.FontName = "Chalkduster\n}</style>";
+		Assert.Throws<RaidSchemaException>(() =>
+			new DiagramStyleProvider().Resolve(manifest, new PlantUmlCompileOptions()));
 	}
 
 	[Fact]
@@ -44,13 +76,13 @@ public class PlantUmlCompilerTests
 			var manifest = TestDiagrams.CreateUseCaseModel().Manifest;
 			manifest.Presentation.Theme = "tenant";
 
-			var result = new PlantUmlDiagramCompiler().Compile(
+			var result = new DiagramStyleProvider().Resolve(
 				manifest,
-				new PlantUmlCompileOptions { LocalThemeRoot = root });
+				new PlantUmlCompileOptions { LocalThemeRoot = root }).ToPlantUml();
 
-			Assert.Contains($"!theme tenant from {root.FullPath}", result.Source);
-			Assert.DoesNotContain("http://", result.Source, StringComparison.OrdinalIgnoreCase);
-			Assert.DoesNotContain("https://", result.Source, StringComparison.OrdinalIgnoreCase);
+			Assert.Contains($"!theme tenant from {root.FullPath}", result);
+			Assert.DoesNotContain("http://", result, StringComparison.OrdinalIgnoreCase);
+			Assert.DoesNotContain("https://", result, StringComparison.OrdinalIgnoreCase);
 		}
 		finally
 		{
@@ -81,7 +113,71 @@ public class PlantUmlCompilerTests
 		var manifest = TestDiagrams.CreateUseCaseModel().Manifest;
 		manifest.Presentation.Theme = "https://example.test/theme";
 
-		Assert.Throws<RaidSchemaException>(() => new PlantUmlDiagramCompiler().Compile(manifest));
+		var configuration = new DiagramStyleProvider().Resolve(manifest, new PlantUmlCompileOptions());
+		Assert.Throws<RaidSchemaException>(() => configuration.ToPlantUml());
+	}
+
+	[Fact]
+	public void StyleCatalog_ResolvesCommonAndDiagramKindLayers()
+	{
+		var catalog = new PumlStyleCatalog();
+		catalog.Common.Set("root", PumlStyleProperty.FontName, "Chalkduster, Comic Sans MS");
+		catalog.For(DiagramKind.UseCase)
+			.Set("componentDiagram usecase", PumlStyleProperty.BackgroundColor, "#445566");
+		catalog.For(DiagramKind.Class)
+			.Set("classDiagram class", PumlStyleProperty.BackgroundColor, "#223344");
+
+		var configuration = new DiagramStyleProvider(catalog, "raikeep-sketch")
+			.Resolve(TestDiagrams.CreateUseCaseModel().Manifest, new PlantUmlCompileOptions());
+		var source = configuration.ToPlantUml();
+
+		Assert.Equal(DiagramKind.UseCase, configuration.DiagramKind);
+		Assert.Contains("style-profile: raikeep-sketch", source);
+		Assert.Contains("componentDiagram", source);
+		Assert.Contains("usecase", source);
+		Assert.Contains("#445566", source);
+		Assert.DoesNotContain("classDiagram", source);
+	}
+
+	[Fact]
+	public void StyleFiles_CanBeOwnedAndStoredInTheImageTree()
+	{
+		var root = Os.TempDir / "RAIkeep" / "raidiagram-tests" /
+			nameof(StyleFiles_CanBeOwnedAndStoredInTheImageTree);
+		Cleanup(root);
+		try
+		{
+			var subscriberRoot = root / "AfricaStage";
+			var style = PumlStyleFile.FromSubscriber(subscriberRoot, "TenantSketchUseCase");
+			style.Write(new PumlStyleSheet()
+				.Set("usecase", PumlStyleProperty.BackgroundColor, "#445566"));
+			var catalog = new PumlStyleCatalog().Add(DiagramKind.UseCase, style);
+
+			var configuration = new DiagramStyleProvider(catalog)
+				.Resolve(TestDiagrams.CreateUseCaseModel().Manifest, new PlantUmlCompileOptions());
+			var theme = PumlThemeFile.FromSubscriber(subscriberRoot, "tenant-sketch")
+				.Write(new PumlStyleSheet()
+					.Set("root", PumlStyleProperty.FontName, "Chalkduster, Comic Sans MS"),
+					handwritten: true);
+			var config = PumlConfigFile.FromImageTree(subscriberRoot, "TenantSketchResolved")
+				.Write(configuration);
+
+			Assert.NotNull(style.ItemPath);
+			Assert.NotNull(theme.ItemPath);
+			Assert.NotNull(config.ItemPath);
+			Assert.Contains("AfricaStage", style.FullName, StringComparison.Ordinal);
+			Assert.Equal(style.SubscriberRoot.FullPath, theme.SubscriberRoot.FullPath);
+			Assert.Equal(style.SubscriberRoot.FullPath, config.SubscriberRoot.FullPath);
+			Assert.Equal("config", config.NameExt);
+			Assert.Equal("puml", config.Ext);
+			Assert.EndsWith("TenantSketchResolved_config.puml", config.FullName);
+			Assert.Contains("!option handwritten true", theme.ReadAllText());
+			Assert.Contains("#445566", configuration.ToPlantUml());
+		}
+		finally
+		{
+			Cleanup(root);
+		}
 	}
 
 	private static void Cleanup(RaiPath root)

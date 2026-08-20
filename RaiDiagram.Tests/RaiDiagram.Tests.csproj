@@ -25,4 +25,22 @@
 		<ProjectReference Include="../RaiDiagram.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="../examples/ScheduleRehearsal/ScheduleRehearsal.raid"
+			Link="Examples/ScheduleRehearsal/ScheduleRehearsal.raid"
+			CopyToOutputDirectory="PreserveNewest" />
+		<None Include="../examples/ScheduleRehearsal/ScheduleRehearsal.puml"
+			Link="Examples/ScheduleRehearsal/ScheduleRehearsal.puml"
+			CopyToOutputDirectory="PreserveNewest" />
+		<None Include="../examples/ScheduleRehearsal/ScheduleRehearsal_config.puml"
+			Link="Examples/ScheduleRehearsal/ScheduleRehearsal_config.puml"
+			CopyToOutputDirectory="PreserveNewest" />
+		<None Include="../examples/ScheduleRehearsal/ScheduleRehearsal.svg"
+			Link="Examples/ScheduleRehearsal/ScheduleRehearsal.svg"
+			CopyToOutputDirectory="PreserveNewest" />
+		<None Include="../themes/puml-theme-raikeep-sketch.puml"
+			Link="Themes/puml-theme-raikeep-sketch.puml"
+			CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>

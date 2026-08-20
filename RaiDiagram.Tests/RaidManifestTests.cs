@@ -63,6 +63,18 @@ public class RaidManifestTests
 	}
 
 	[Fact]
+	public void DiagramModel_FromManifestValidatesAndSnapshotsAuthority()
+	{
+		var manifest = TestDiagrams.CreateUseCaseModel().Manifest;
+
+		var model = DiagramModel.FromManifest(manifest);
+		manifest.Diagram.Title = "Changed after snapshot";
+
+		Assert.Equal("Schedule rehearsal", model.Manifest.Diagram.Title);
+		Assert.Equal(DiagramSemanticHasher.Compute(model.Manifest), model.SemanticHash);
+	}
+
+	[Fact]
 	public void SemanticHash_IgnoresPresentationAndCapturedRevision()
 	{
 		var original = TestDiagrams.CreateUseCaseModel().Manifest;

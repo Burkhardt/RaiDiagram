@@ -1,0 +1,8 @@
+' RaiDiagram resolved config for UseCase
+!theme cerulean
+!option handwritten true
+<style>
+root {
+  FontName Chalkduster, Comic Sans MS
+}
+</style>

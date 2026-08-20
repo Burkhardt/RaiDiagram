@@ -22,6 +22,25 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Setup Java for PlantUML
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install pinned PlantUML CLI
+        shell: bash
+        run: |
+          PLANTUML_VERSION="1.2026.6"
+          PLANTUML_JAR="${RUNNER_TEMP}/plantuml-${PLANTUML_VERSION}.jar"
+          curl --fail --location --silent --show-error \
+            --output "${PLANTUML_JAR}" \
+            "https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
+          echo "89948f14c93756c7a3fb7b69078ff37e8489fd79dd430c582b931e2f65358690  ${PLANTUML_JAR}" | sha256sum --check
+          java -Djava.awt.headless=true -jar "${PLANTUML_JAR}" -version
+          echo "RAIDIAGRAM_PLANTUML_JAR=${PLANTUML_JAR}" >> "${GITHUB_ENV}"
+          echo "JAVA_TOOL_OPTIONS=-Djava.awt.headless=true" >> "${GITHUB_ENV}"
+
       - name: Validate tag matches csproj version
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash

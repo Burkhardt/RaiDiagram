@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.RegularExpressions;
 using OsLib;
 
 namespace RaiDiagram;
@@ -26,7 +25,7 @@ public sealed class PlantUmlCompilation
 	public required DiagramCapabilityReport Capabilities { get; init; }
 }
 
-public sealed partial class PlantUmlDiagramCompiler
+public sealed class PlantUmlDiagramCompiler
 {
 	private static readonly HashSet<string> SupportedElements =
 	[
@@ -88,7 +87,7 @@ public sealed partial class PlantUmlDiagramCompiler
 		if (!capabilities.CanRender)
 			throw new UnsupportedDiagramConstructException(capabilities.UnsupportedConstructs[0]);
 
-		options ??= new PlantUmlCompileOptions();
+		_ = options;
 		var aliases = manifest.Projection.Elements.ToDictionary(
 			item => item.Id,
 			item => Alias(item.Id),
@@ -99,8 +98,10 @@ public sealed partial class PlantUmlDiagramCompiler
 			.ToDictionary(group => group.Key, group => group.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), StringComparer.Ordinal);
 
 		var source = new StringBuilder();
-		source.Append("@startuml ").AppendLine(Alias(manifest.Diagram.Id));
-		AppendPresentation(source, manifest.Presentation, options);
+		// PlantUML uses an optional @startuml name as the output basename. The
+		// renderer requires the SVG to remain a sibling of its staged .puml file,
+		// so the source filename must remain authoritative.
+		source.AppendLine("@startuml");
 
 		var framedIds = manifest.Presentation.Frames
 			.SelectMany(frame => frame.ElementIds)
@@ -124,43 +125,6 @@ public sealed partial class PlantUmlDiagramCompiler
 
 		source.AppendLine("@enduml");
 		return new PlantUmlCompilation { Source = source.ToString(), Capabilities = capabilities };
-	}
-
-	private static void AppendPresentation(
-		StringBuilder source,
-		DiagramPresentation presentation,
-		PlantUmlCompileOptions options)
-	{
-		if (!string.IsNullOrWhiteSpace(presentation.Theme))
-		{
-			if (!SafeThemeName().IsMatch(presentation.Theme))
-				throw new RaidSchemaException($"Theme name '{presentation.Theme}' is not a safe PlantUML theme identifier.");
-
-			source.Append("!theme ").Append(presentation.Theme);
-			if (options.LocalThemeRoot is not null)
-			{
-				if (!options.LocalThemeRoot.Exists())
-					throw new RaiPathNotFoundException(
-						$"The approved PlantUML theme root does not exist: {options.LocalThemeRoot.FullPath}",
-						options.LocalThemeRoot.FullPath);
-				var themeFile = new RaiFile(options.LocalThemeRoot, $"puml-theme-{presentation.Theme}.puml");
-				if (!themeFile.Exists())
-					throw new DiagramRenderingException($"PlantUML theme '{presentation.Theme}' was not found in the approved theme root.");
-				source.Append(" from ").Append(EscapePreprocessorPath(options.LocalThemeRoot.FullPath));
-			}
-			source.AppendLine();
-		}
-
-		if (presentation.Handwritten)
-			source.AppendLine("skinparam handwritten true");
-		if (!string.IsNullOrWhiteSpace(presentation.FontName))
-		{
-			if (presentation.FontName.IndexOfAny(['\r', '\n']) >= 0)
-				throw new RaidSchemaException("A PlantUML font name cannot contain a line break.");
-			source.Append("skinparam defaultFontName \"")
-				.Append(EscapeLabel(presentation.FontName))
-				.AppendLine("\"");
-		}
 	}
 
 	private static void AppendElement(
@@ -242,13 +206,4 @@ public sealed partial class PlantUmlDiagramCompiler
 			.Replace("\r", string.Empty, StringComparison.Ordinal)
 			.Replace("\n", "\\n", StringComparison.Ordinal);
 
-	private static string EscapePreprocessorPath(string path)
-	{
-		if (path.IndexOfAny(['\r', '\n', '\'', '"']) >= 0)
-			throw new DiagramRenderingException("The approved PlantUML theme root contains unsupported quoting characters.");
-		return path;
-	}
-
-	[GeneratedRegex("^[A-Za-z0-9_.-]+$", RegexOptions.CultureInvariant)]
-	private static partial Regex SafeThemeName();
 }

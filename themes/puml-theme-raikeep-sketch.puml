@@ -1,0 +1,7 @@
+' RaiDiagram sketch presentation: modern PlantUML 1.2025.1+ syntax.
+!option handwritten true
+<style>
+root {
+  FontName Chalkduster, Comic Sans MS
+}
+</style>

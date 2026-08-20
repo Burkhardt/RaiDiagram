@@ -1,0 +1,84 @@
+{
+  // This JSON5 manifest is the authoritative diagram source.
+  schemaVersion: '1.0',
+  diagram: {
+	id: 'ScheduleRehearsal',
+	title: 'Schedule rehearsal',
+	kind: 'UseCase',
+  },
+  model: {
+	providerScheme: 'test-model',
+	modelId: 'theatre',
+	capturedRevision: 'r1',
+  },
+  projection: {
+	elements: [
+	  {
+		id: 'scheduling',
+		kind: 'Frame',
+		displayName: 'Scheduling system',
+		relevantFacts: {},
+		sourceRelationships: [],
+		selectedBy: [],
+	  },
+	  {
+		id: 'band-manager',
+		kind: 'Role',
+		displayName: 'Band Manager',
+		source: {
+		  scheme: 'test-model',
+		  id: 'role/band-manager',
+		  kind: 'Role',
+		},
+		relevantFacts: {
+		  active: {
+			kind: 'Boolean',
+			text: 'true',
+		  },
+		},
+		sourceRelationships: [
+		  {
+			scheme: 'test-model',
+			id: 'usecase/schedule',
+			kind: 'UseCase',
+		  },
+		],
+		sourceSemanticHash: '6837ded9cb77f2a98597400495a4d9e9faf794cb67ee47a6cf2d9f7e7a9c1200',
+		selectedBy: [],
+	  },
+	  {
+		id: 'schedule',
+		kind: 'UseCase',
+		displayName: 'Schedule rehearsal',
+		parentId: 'scheduling',
+		source: {
+		  scheme: 'test-model',
+		  id: 'usecase/schedule',
+		  kind: 'UseCase',
+		},
+		relevantFacts: {},
+		sourceRelationships: [],
+		sourceSemanticHash: '8f70dfaa2c11a493b01b354fa32314fea513385ba3b900e669ecc4b84dd25d48',
+		selectedBy: [],
+	  },
+	],
+	relationships: [
+	  {
+		id: 'relationship-1',
+		kind: 'RoleUseCaseConnector',
+		sourceId: 'band-manager',
+		targetId: 'schedule',
+		label: 'schedules',
+	  },
+	],
+	selectionRules: [],
+  },
+  presentation: {
+	theme: 'cerulean',
+	fontName: 'Chalkduster, Comic Sans MS',
+	handwritten: true,
+	frames: [],
+	layoutHints: {},
+  },
+  annotations: [],
+}

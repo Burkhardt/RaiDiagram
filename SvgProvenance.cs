@@ -9,6 +9,10 @@ public sealed class SvgProvenance
 	public required string SchemaVersion { get; init; }
 	public string? ManifestUri { get; init; }
 	public string? ModelRevision { get; init; }
+	public string? ConfigHash { get; init; }
+	public string? RenderHash { get; init; }
+	public string? StyleHash { get; init; }
+	public IReadOnlyList<string> StyleLayers { get; init; } = [];
 }
 
 public static class SvgProvenanceMetadata
@@ -31,6 +35,14 @@ public static class SvgProvenanceMetadata
 			root.SetAttributeValue("data-raid-schema-version", provenance.SchemaVersion);
 			root.SetAttributeValue("data-raid-manifest-uri", provenance.ManifestUri);
 			root.SetAttributeValue("data-raid-model-revision", provenance.ModelRevision);
+			root.SetAttributeValue("data-raid-config-hash", provenance.ConfigHash);
+			root.SetAttributeValue("data-raid-render-hash", provenance.RenderHash);
+			root.SetAttributeValue("data-raid-style-hash", provenance.StyleHash);
+			root.SetAttributeValue(
+				"data-raid-style-layers",
+				provenance.StyleLayers.Count == 0
+					? null
+					: string.Join(';', provenance.StyleLayers.Select(Uri.EscapeDataString)));
 			return document.ToString(SaveOptions.DisableFormatting);
 		}
 		catch (SvgProvenanceException)
@@ -55,7 +67,11 @@ public static class SvgProvenanceMetadata
 				SemanticHash = Required(root, "data-raid-semantic-hash"),
 				SchemaVersion = Required(root, "data-raid-schema-version"),
 				ManifestUri = (string?)root.Attribute("data-raid-manifest-uri"),
-				ModelRevision = (string?)root.Attribute("data-raid-model-revision")
+				ModelRevision = (string?)root.Attribute("data-raid-model-revision"),
+				ConfigHash = (string?)root.Attribute("data-raid-config-hash"),
+				RenderHash = (string?)root.Attribute("data-raid-render-hash"),
+				StyleHash = (string?)root.Attribute("data-raid-style-hash"),
+				StyleLayers = ParseStyleLayers((string?)root.Attribute("data-raid-style-layers"))
 			};
 			Validate(provenance);
 			return provenance;
@@ -83,9 +99,31 @@ public static class SvgProvenanceMetadata
 		if (provenance.SemanticHash.Length != 64
 			|| provenance.SemanticHash.Any(character => !Uri.IsHexDigit(character)))
 			throw new SvgProvenanceException("SVG provenance requires a lowercase or uppercase SHA-256 semantic hash.");
+		ValidateOptionalHash(provenance.ConfigHash, "config");
+		ValidateOptionalHash(provenance.RenderHash, "render");
+		ValidateOptionalHash(provenance.StyleHash, "style");
+		if (provenance.StyleLayers.Any(layer => string.IsNullOrWhiteSpace(layer)
+			|| layer.IndexOfAny(['\r', '\n']) >= 0))
+			throw new SvgProvenanceException("SVG provenance contains an invalid style-layer reference.");
 		if (provenance.ManifestUri is { Length: > 0 }
 			&& Uri.TryCreate(provenance.ManifestUri, UriKind.Absolute, out var uri)
 			&& uri.IsFile)
 			throw new SvgProvenanceException("SVG provenance must not expose an absolute local file URI.");
+	}
+
+	private static IReadOnlyList<string> ParseStyleLayers(string? value)
+		=> string.IsNullOrWhiteSpace(value)
+			? []
+			: value.Split(';', StringSplitOptions.RemoveEmptyEntries)
+				.Select(Uri.UnescapeDataString)
+				.ToArray();
+
+	private static void ValidateOptionalHash(string? hash, string label)
+	{
+		if (hash is null)
+			return;
+		if (hash.Length != 64 || hash.Any(character => !Uri.IsHexDigit(character)))
+			throw new SvgProvenanceException(
+				$"SVG provenance requires a lowercase or uppercase SHA-256 {label} hash when supplied.");
 	}
 }

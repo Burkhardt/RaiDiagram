@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using OsLib;
+using RaiImage;
 
 namespace RaiDiagram;
 
@@ -110,19 +111,29 @@ public static class RaidJson5
 }
 
 /// <summary>A canonical `.raid` manifest file backed by OsLib's TextFile abstraction.</summary>
-public sealed class RaidFile : TextFile
+public sealed class RaidFile : ImageTreeTextFile
 {
 	public RaidFile(string fullName) : base(fullName)
 	{
 		EnsureExtension();
 	}
 
-	public RaidFile(RaiPath path, string name) : base(path, name, "raid")
+	public RaidFile(RaiPath path, string name) : base(path, name, string.Empty, "raid")
+	{
+		EnsureExtension();
+	}
+
+	public RaidFile(
+		RaiPath subscriberRoot,
+		string itemId,
+		PathConventionType convention)
+		: base(subscriberRoot, itemId, string.Empty, "raid", convention)
 	{
 		EnsureExtension();
 	}
 
 	public DiagramManifest LoadManifest() => RaidJson5.Load(this);
+	public DiagramModel LoadModel() => DiagramModel.FromManifest(LoadManifest());
 	public RaidFile SaveManifest(DiagramManifest manifest)
 	{
 		RaidJson5.Save(this, manifest);

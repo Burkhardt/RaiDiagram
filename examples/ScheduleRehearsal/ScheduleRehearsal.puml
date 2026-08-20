@@ -1,0 +1,7 @@
+@startuml
+actor "Band Manager" as raid_b72be061e9200bae
+package "Scheduling system" as raid_a919b4a6cdd925a9 {
+	usecase "Schedule rehearsal" as raid_5f72005e81c4ecbd
+}
+raid_b72be061e9200bae --> raid_5f72005e81c4ecbd : schedules
+@enduml

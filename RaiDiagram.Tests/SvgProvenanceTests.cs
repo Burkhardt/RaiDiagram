@@ -6,6 +6,10 @@ public class SvgProvenanceTests
 	public void EmbedAndRead_RoundTripsRequiredMetadata()
 	{
 		var hash = new string('a', 64);
+		var configHash = new string('b', 64);
+		var renderHash = new string('c', 64);
+		var styleHash = new string('d', 64);
+		var styleLayers = new[] { "RAIkeep|common|raikeep_common.puml|" + new string('e', 64) };
 		var svg = SvgProvenanceMetadata.Embed(
 			"<svg xmlns=\"http://www.w3.org/2000/svg\"><text>diagram</text></svg>",
 			new SvgProvenance
@@ -14,7 +18,11 @@ public class SvgProvenanceTests
 				SemanticHash = hash,
 				SchemaVersion = "1.0",
 				ManifestUri = "raid:ScheduleRehearsal",
-				ModelRevision = "r1"
+				ModelRevision = "r1",
+				ConfigHash = configHash,
+				RenderHash = renderHash,
+				StyleHash = styleHash,
+				StyleLayers = styleLayers
 			});
 
 		var result = SvgProvenanceMetadata.Read(svg);
@@ -23,6 +31,10 @@ public class SvgProvenanceTests
 		Assert.Equal(hash, result.SemanticHash);
 		Assert.Equal("1.0", result.SchemaVersion);
 		Assert.Equal("raid:ScheduleRehearsal", result.ManifestUri);
+		Assert.Equal(configHash, result.ConfigHash);
+		Assert.Equal(renderHash, result.RenderHash);
+		Assert.Equal(styleHash, result.StyleHash);
+		Assert.Equal(styleLayers, result.StyleLayers);
 		Assert.DoesNotContain("/Users/", svg, StringComparison.Ordinal);
 	}
 
