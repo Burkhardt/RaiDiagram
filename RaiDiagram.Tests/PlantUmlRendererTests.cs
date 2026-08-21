@@ -1,5 +1,6 @@
 using OsLib;
 using RaiImage;
+using Xunit.Sdk;
 
 namespace RaiDiagram.Tests;
 
@@ -50,9 +51,10 @@ public sealed class PlantUmlRendererTests : IDisposable
 	}
 
 	[Fact]
+	[Trait("Category", "PlantUMLIntegration")]
 	public async Task RenderAsync_UsesRealPlantUmlCliAndVerifiesSvgProvenance()
 	{
-		ConfigureRealPlantUml();
+		RequireRealPlantUml();
 		var version = new PlantUmlCommand().Run("-version");
 		Assert.Equal(0, version.ExitCode);
 		Assert.Contains("PlantUML version", version.Output, StringComparison.OrdinalIgnoreCase);
@@ -110,9 +112,10 @@ public sealed class PlantUmlRendererTests : IDisposable
 	}
 
 	[Fact]
+	[Trait("Category", "PlantUMLIntegration")]
 	public async Task RenderAsync_UsesCheckedInLocalThemeWithRealPlantUml()
 	{
-		ConfigureRealPlantUml();
+		RequireRealPlantUml();
 		var model = new RaidFile(ExampleRoot(), "ScheduleRehearsal").LoadModel();
 		model.Manifest.Presentation.Theme = "raikeep-sketch";
 		model.Manifest.Presentation.Handwritten = false;
@@ -157,9 +160,10 @@ public sealed class PlantUmlRendererTests : IDisposable
 	}
 
 	[Fact]
+	[Trait("Category", "PlantUMLIntegration")]
 	public async Task RenderAsync_InjectsDiagramKindStyleFromCatalog()
 	{
-		ConfigureRealPlantUml();
+		RequireRealPlantUml();
 		var catalog = new PumlStyleCatalog();
 		catalog.Common.Set("root", PumlStyleProperty.FontName, "Chalkduster, Comic Sans MS");
 		catalog.For(DiagramKind.UseCase)
@@ -201,9 +205,10 @@ public sealed class PlantUmlRendererTests : IDisposable
 	}
 
 	[Fact]
+	[Trait("Category", "PlantUMLIntegration")]
 	public async Task RenderAsync_UsesExplicitSubscriberStyleLocationsWithRealPlantUml()
 	{
-		ConfigureRealPlantUml();
+		RequireRealPlantUml();
 		var model = new RaidFile(ExampleRoot(), "ScheduleRehearsal").LoadModel();
 		model.Manifest.Presentation.Theme = RaiDiagramDefaults.SketchProfileId;
 		model.Manifest.Presentation.Handwritten = false;
@@ -268,20 +273,81 @@ public sealed class PlantUmlRendererTests : IDisposable
 	private static RaiPath ExampleRoot()
 		=> new RaiPath(AppContext.BaseDirectory) / "Examples" / "ScheduleRehearsal";
 
-	private static void ConfigureRealPlantUml()
+	private static void RequireRealPlantUml()
+	{
+		var configurationFailure = ConfigureRealPlantUml();
+		if (configurationFailure is not null)
+		{
+			Unavailable(configurationFailure);
+			return;
+		}
+
+		var command = new PlantUmlCommand();
+		if (!command.IsAvailable())
+		{
+			Unavailable(
+				$"PlantUML could not be resolved from '{string.Join("', '", command.CandidateExecutables)}'.");
+			return;
+		}
+
+		RaiSystemResult version;
+		try
+		{
+			version = command.Run("-version");
+		}
+		catch (Exception exception)
+		{
+			Unavailable($"PlantUML's environment probe could not run: {exception.Message}");
+			return;
+		}
+
+		if (version.Succeeded)
+			return;
+
+		Unavailable(
+			$"PlantUML's environment probe exited with code {version.ExitCode}. " +
+			Compact(version.Output));
+	}
+
+	private static string? ConfigureRealPlantUml()
 	{
 		var configuredJar = Environment.GetEnvironmentVariable("RAIDIAGRAM_PLANTUML_JAR");
 		if (string.IsNullOrWhiteSpace(configuredJar))
-			return;
+			return null;
 
 		var jar = new RaiFile(configuredJar);
 		if (!jar.Exists())
-			throw new RaiPathNotFoundException(
-				$"The configured PlantUML CLI jar does not exist: {jar.FullName}",
-				jar.FullName);
+			return $"The configured PlantUML CLI jar does not exist: {jar.FullName}";
 		PlantUml.PlantUmlPath = jar.Path;
 		PlantUml.CommandName = jar.NameWithExtension;
 		PlantUml.JavaCommand = "java";
+		return null;
+	}
+
+	private static void Unavailable(string reason)
+	{
+		var message =
+			$"Real PlantUML integration requires a complete PlantUML environment, including Graphviz when the diagram requires it. {reason}";
+		if (IsRequired())
+			Assert.Fail(message);
+
+		throw SkipException.ForSkip(
+			$"{message} Set RAIDIAGRAM_REQUIRE_REAL_PLANTUML=1 to make an unavailable environment fail.");
+	}
+
+	private static bool IsRequired()
+	{
+		var value = Environment.GetEnvironmentVariable("RAIDIAGRAM_REQUIRE_REAL_PLANTUML");
+		return value is not null && (value.Equals("1", StringComparison.Ordinal)
+			|| value.Equals("true", StringComparison.OrdinalIgnoreCase)
+			|| value.Equals("yes", StringComparison.OrdinalIgnoreCase));
+	}
+
+	private static string Compact(string value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+			return "No diagnostic output was produced.";
+		return string.Join(" ", value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 	}
 
 	private static void AssertProvenance(

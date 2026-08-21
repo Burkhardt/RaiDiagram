@@ -5,6 +5,16 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      release_ref:
+        description: "Existing immutable release tag to build (for example v4.2.2)"
+        required: true
+        type: string
+      skip_external_plantuml_tests:
+        description: "Recovery for a legacy tag whose tests predate runtime PlantUML skipping"
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   publish:
@@ -16,37 +26,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_ref || github.ref }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
 
-      - name: Setup Java for PlantUML
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Install pinned PlantUML CLI
-        shell: bash
-        run: |
-          PLANTUML_VERSION="1.2026.6"
-          PLANTUML_JAR="${RUNNER_TEMP}/plantuml-${PLANTUML_VERSION}.jar"
-          curl --fail --location --silent --show-error \
-            --output "${PLANTUML_JAR}" \
-            "https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
-          echo "89948f14c93756c7a3fb7b69078ff37e8489fd79dd430c582b931e2f65358690  ${PLANTUML_JAR}" | sha256sum --check
-          java -Djava.awt.headless=true -jar "${PLANTUML_JAR}" -version
-          echo "RAIDIAGRAM_PLANTUML_JAR=${PLANTUML_JAR}" >> "${GITHUB_ENV}"
-          echo "JAVA_TOOL_OPTIONS=-Djava.awt.headless=true" >> "${GITHUB_ENV}"
-
       - name: Validate tag matches csproj version
-        if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
         run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          RELEASE_REF="${{ github.event_name == 'workflow_dispatch' && inputs.release_ref || github.ref_name }}"
+          if [[ ! "${RELEASE_REF}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release ref must be an immutable vX.Y.Z tag, found: ${RELEASE_REF}"
+            exit 1
+          fi
+          TAG_VERSION="${RELEASE_REF#v}"
           CSPROJ_VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" RaiDiagram.csproj)
+          echo "Release ref: ${RELEASE_REF}"
+          echo "Release commit: $(git rev-parse HEAD)"
           echo "Tag version: ${TAG_VERSION}"
           echo "Project version: ${CSPROJ_VERSION}"
           if [[ "${TAG_VERSION}" != "${CSPROJ_VERSION}" ]]; then
@@ -61,7 +60,22 @@ jobs:
         run: dotnet build RaiDiagram.slnx --configuration Release --no-restore /p:UseLocalRAIkeepSources=false
 
       - name: Test
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_external_plantuml_tests }}
         run: dotnet test RaiDiagram.Tests/RaiDiagram.Tests.csproj --configuration Release --no-build --no-restore /p:UseLocalRAIkeepSources=false
+
+      - name: Test tagged source without legacy external PlantUML tests
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_external_plantuml_tests }}
+        shell: bash
+        run: |
+          FILTER="FullyQualifiedName!~RenderAsync_UsesRealPlantUmlCliAndVerifiesSvgProvenance&FullyQualifiedName!~RenderAsync_UsesCheckedInLocalThemeWithRealPlantUml&FullyQualifiedName!~RenderAsync_InjectsDiagramKindStyleFromCatalog&FullyQualifiedName!~RenderAsync_UsesExplicitSubscriberStyleLocationsWithRealPlantUml"
+          echo "The selected legacy tag predates runtime PlantUML integration-test skipping."
+          echo "Running all other tests; the four external-renderer tests remain locally verifiable."
+          dotnet test RaiDiagram.Tests/RaiDiagram.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --no-restore \
+            --filter "${FILTER}" \
+            /p:UseLocalRAIkeepSources=false
 
       - name: Pack
         run: dotnet pack RaiDiagram.csproj --configuration Release --no-build --output artifacts /p:UseLocalRAIkeepSources=false

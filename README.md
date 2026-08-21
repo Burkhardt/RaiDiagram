@@ -74,6 +74,16 @@ Style fallback locations are always supplied explicitly in least-specific to
 most-specific order. RaiDiagram performs no identity management, authorization,
 parent-directory walking, or application/subscription/tenant inference.
 
+## Testing with PlantUML
+
+The compiler, manifest, style, provenance, and command-contract tests do not
+require external diagramming tools. Four `PlantUMLIntegration` tests additionally
+exercise the real renderer. They run when `plantuml -version` confirms a complete
+local installation (including Graphviz for graph-based diagrams) and are reported
+as skipped when that environment is unavailable. Set
+`RAIDIAGRAM_REQUIRE_REAL_PLANTUML=1` to turn an unavailable renderer into a test
+failure, for example in a dedicated integration environment.
+
 See the approved
 [CR009 package design](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR009_AIA_to_RAIkeep_RaiDiagram_Package.md),
 the [package-boundary ADR](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR001_RaiDiagram_Package_Boundary.md),
