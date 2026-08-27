@@ -4,10 +4,10 @@ RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
 agent-readable JSON5 manifests that keep semantic projection, model references,
 and presentation intent separate from application domain models.
 
-## 4.2.2
+## 4.2.3
 
-The coordinated `4.2.2` patch implements accepted CR010 and completes the CR009
-consumer export surface. `DiagramModel.FromManifest(...)` and
+The coordinated `4.2.3` patch carries the accepted CR010/CR009 diagram surface
+forward on the CR015 dependency line. `DiagramModel.FromManifest(...)` and
 `DiagramDestination.CreateSubscriberRoot()` are public. Typed `.raid`, clean
 `.puml`, resolved `_config.puml`, and rendered image artifacts share the
 existing subscriber `ItemTreePath` placement without introducing identity
@@ -16,7 +16,7 @@ layering, default seeding, and SVG style provenance are supported through the
 real PlantUML `-config` path.
 
 Current release notes:
-[RaiDiagram_RELEASE_NOTES_4.2.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.2.md).
+[RaiDiagram_RELEASE_NOTES_4.2.3.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.3.md).
 
 ## 4.2.0
 
