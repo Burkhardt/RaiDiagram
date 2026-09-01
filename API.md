@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.2.4 API.
+This document provides a foldable overview of the public RaiDiagram 4.2.5 API.
 
 ## Manifest and semantic model
 
