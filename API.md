@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.2.5 API.
+This document provides a foldable overview of the public RaiDiagram 4.2.6 API. CR019 changes only the coordinated RaiUtils/RaiImage dependency line; the diagram API is unchanged.
 
 ## Manifest and semantic model
 
