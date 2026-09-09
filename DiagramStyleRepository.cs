@@ -99,13 +99,13 @@ public sealed class ImageTreeDiagramStyleRepository : IDiagramStyleRepository
 				layers,
 				location,
 				"common",
-				PumlStyleFile.FromSubscriberProfile(location.SubscriberRoot, context.ProfileId, "common", convention),
+				new PumlStyleFile(location.SubscriberRoot, context.ProfileId, "common", convention),
 				precedence++);
 			AddIfPresent(
 				layers,
 				location,
 				context.Manifest.Diagram.Kind.ToString(),
-				PumlStyleFile.FromSubscriberProfile(
+				new PumlStyleFile(
 					location.SubscriberRoot,
 					context.ProfileId,
 					context.Manifest.Diagram.Kind.ToString().ToLowerInvariant(),
@@ -125,7 +125,7 @@ public sealed class ImageTreeDiagramStyleRepository : IDiagramStyleRepository
 		for (var index = context.Locations.Count - 1; index >= 0; index--)
 		{
 			var location = context.Locations[index];
-			var file = PumlThemeFile.FromSubscriberProfile(
+			var file = new PumlThemeFile(
 				location.SubscriberRoot,
 				context.ProfileId,
 				themeName,
@@ -208,7 +208,7 @@ public static class RaiDiagramDefaults
 	{
 		var location = new DiagramStyleLocation(imageTreeRoot, subscriber);
 		ArgumentException.ThrowIfNullOrWhiteSpace(profileId);
-		var theme = PumlThemeFile.FromSubscriberProfile(
+		var theme = new PumlThemeFile(
 			location.SubscriberRoot,
 			profileId,
 			profileId,

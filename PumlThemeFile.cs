@@ -8,9 +8,19 @@ namespace RaiDiagram;
 /// A local PlantUML theme using PlantUML's required
 /// <c>puml-theme-&lt;name&gt;.puml</c> filename convention.
 /// </summary>
-public sealed partial class PumlThemeFile : ImageTreeTextFile
+public sealed partial class PumlThemeFile : ItemTreeTextFile
 {
-	private PumlThemeFile(
+	public PumlThemeFile(ItemTreePath itemPath, string themeName)
+		: base(
+			itemPath ?? throw new ArgumentNullException(nameof(itemPath)),
+			FileStem(themeName),
+			string.Empty,
+			"puml")
+	{
+		ThemeName = ValidateThemeName(themeName);
+	}
+
+	public PumlThemeFile(
 		RaiPath subscriberRoot,
 		string itemId,
 		string themeName,
@@ -35,40 +45,6 @@ public sealed partial class PumlThemeFile : ImageTreeTextFile
 	public string ThemeName { get; }
 
 	public static string FileNameFor(string themeName) => $"{FileStem(themeName)}.puml";
-
-	public static PumlThemeFile FromImageTree(
-		RaiPath imageTreeRoot,
-		string subscriber,
-		string themeName,
-		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-	{
-		ArgumentNullException.ThrowIfNull(imageTreeRoot);
-		ValidateThemeName(themeName);
-		if (string.IsNullOrWhiteSpace(subscriber) || subscriber.Contains('/') || subscriber.Contains('\\'))
-			throw new ArgumentException("The theme subscriber must be a plain ImageTree path segment.", nameof(subscriber));
-		return FromSubscriber(imageTreeRoot / new RaiRelPath(subscriber), themeName, convention);
-	}
-
-	public static PumlThemeFile FromSubscriber(
-		RaiPath subscriberRoot,
-		string themeName,
-		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-	{
-		ArgumentNullException.ThrowIfNull(subscriberRoot);
-		ValidateThemeName(themeName);
-		return new PumlThemeFile(subscriberRoot, FileStem(themeName), themeName, convention);
-	}
-
-	public static PumlThemeFile FromSubscriberProfile(
-		RaiPath subscriberRoot,
-		string profileId,
-		string themeName,
-		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-		=> new(
-			subscriberRoot ?? throw new ArgumentNullException(nameof(subscriberRoot)),
-			profileId,
-			themeName,
-			convention);
 
 	public PumlThemeFile Write(PumlStyleSheet styleSheet, bool handwritten = false)
 	{

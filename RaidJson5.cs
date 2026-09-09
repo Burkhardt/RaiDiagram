@@ -111,8 +111,14 @@ public static class RaidJson5
 }
 
 /// <summary>A canonical `.raid` manifest file backed by OsLib's TextFile abstraction.</summary>
-public sealed class RaidFile : ImageTreeTextFile
+public sealed class RaidFile : ItemTreeTextFile
 {
+	public RaidFile(ItemTreePath itemPath)
+		: base(itemPath ?? throw new ArgumentNullException(nameof(itemPath)), string.Empty, "raid")
+	{
+		EnsureExtension();
+	}
+
 	public RaidFile(string fullName) : base(fullName)
 	{
 		EnsureExtension();

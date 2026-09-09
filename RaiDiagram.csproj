@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiDiagram</Title>
 		<PackageId>RaiDiagram</PackageId>
-		<Version>4.2.6</Version>
+		<Version>4.2.7</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<Description>Agent-readable semantic diagrams, model reconciliation, and PlantUML rendering for RAIkeep.</Description>
 		<TargetFramework>net10.0</TargetFramework>
@@ -21,7 +21,7 @@
 		<RepositoryUrl>https://github.com/Burkhardt/RaiDiagram.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<PackageReleaseNotes>4.2.6 coordinated dependency release for accepted CR019.</PackageReleaseNotes>
+		<PackageReleaseNotes>4.2.7 aligns diagram artifacts with accepted CR020 ItemTreePath ownership.</PackageReleaseNotes>
 		<RAIkeepRoot Condition="'$(RAIkeepRoot)' == '' and Exists('../OsLib/OsLib.csproj')">..</RAIkeepRoot>
 		<OsLibProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/OsLib/OsLib.csproj')">$(RAIkeepRoot)/OsLib/OsLib.csproj</OsLibProjectPath>
 		<RaiUtilsProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj')">$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj</RaiUtilsProjectPath>
@@ -29,9 +29,9 @@
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">false</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(OsLibProjectPath)' != '' and '$(RaiUtilsProjectPath)' != '' and '$(RaiImageProjectPath)' != ''">true</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == ''">false</UseLocalRAIkeepSources>
-		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.2.6</OsLibPackageVersion>
-		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.2.6</RaiUtilsPackageVersion>
-		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.2.6</RaiImagePackageVersion>
+		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.2.7</OsLibPackageVersion>
+		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.2.7</RaiUtilsPackageVersion>
+		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.2.7</RaiImagePackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -148,18 +148,18 @@ public class PlantUmlCompilerTests
 		try
 		{
 			var subscriberRoot = root / "AfricaStage";
-			var style = PumlStyleFile.FromSubscriber(subscriberRoot, "TenantSketchUseCase");
+			var style = new PumlStyleFile(subscriberRoot, "TenantSketchUseCase", string.Empty, PathConventionType.ItemIdTree8x2);
 			style.Write(new PumlStyleSheet()
 				.Set("usecase", PumlStyleProperty.BackgroundColor, "#445566"));
 			var catalog = new PumlStyleCatalog().Add(DiagramKind.UseCase, style);
 
 			var configuration = new DiagramStyleProvider(catalog)
 				.Resolve(TestDiagrams.CreateUseCaseModel().Manifest, new PlantUmlCompileOptions());
-			var theme = PumlThemeFile.FromSubscriber(subscriberRoot, "tenant-sketch")
+			var theme = new PumlThemeFile(subscriberRoot, "puml-theme-tenant-sketch", "tenant-sketch", PathConventionType.ItemIdTree8x2)
 				.Write(new PumlStyleSheet()
 					.Set("root", PumlStyleProperty.FontName, "Chalkduster, Comic Sans MS"),
 					handwritten: true);
-			var config = PumlConfigFile.FromImageTree(subscriberRoot, "TenantSketchResolved")
+			var config = new PumlConfigFile(subscriberRoot, "TenantSketchResolved", PathConventionType.ItemIdTree8x2)
 				.Write(configuration);
 
 			Assert.NotNull(style.ItemPath);

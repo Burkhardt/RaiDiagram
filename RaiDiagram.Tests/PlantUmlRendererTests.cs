@@ -222,10 +222,11 @@ public sealed class PlantUmlRendererTests : IDisposable
 			var defaults = new DiagramStyleLocation(imageTreeRoot, "RAIkeep");
 			var subscriber = new DiagramStyleLocation(imageTreeRoot, "AfricaStage");
 			RaiDiagramDefaults.SeedTo(imageTreeRoot, defaults.Subscriber);
-			PumlStyleFile.FromSubscriberProfile(
+			new PumlStyleFile(
 					subscriber.SubscriberRoot,
 					RaiDiagramDefaults.SketchProfileId,
-					"usecase")
+					"usecase",
+					PathConventionType.ItemIdTree8x2)
 				.Write(new PumlStyleSheet().Set(
 					"componentDiagram usecase",
 					PumlStyleProperty.BackgroundColor,

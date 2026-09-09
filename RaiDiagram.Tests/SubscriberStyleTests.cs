@@ -14,9 +14,9 @@ public sealed class SubscriberStyleTests
 			var defaults = new DiagramStyleLocation(root, "RAIkeep");
 			var tenant = new DiagramStyleLocation(root, "AfricaStage-Tenant-A");
 			var seeded = RaiDiagramDefaults.SeedTo(root, defaults.Subscriber);
-			PumlStyleFile.FromSubscriberProfile(tenant.SubscriberRoot, RaiDiagramDefaults.SketchProfileId, "common")
+			new PumlStyleFile(tenant.SubscriberRoot, RaiDiagramDefaults.SketchProfileId, "common", PathConventionType.ItemIdTree8x2)
 				.Write(new PumlStyleSheet().Set("root", PumlStyleProperty.FontColor, "#112233"));
-			PumlStyleFile.FromSubscriberProfile(tenant.SubscriberRoot, RaiDiagramDefaults.SketchProfileId, "usecase")
+			new PumlStyleFile(tenant.SubscriberRoot, RaiDiagramDefaults.SketchProfileId, "usecase", PathConventionType.ItemIdTree8x2)
 				.Write(new PumlStyleSheet().Set(
 					"componentDiagram usecase",
 					PumlStyleProperty.BackgroundColor,
@@ -64,9 +64,9 @@ public sealed class SubscriberStyleTests
 		{
 			var tenantA = new DiagramStyleLocation(root, "AfricaStage-Tenant-A");
 			var tenantB = new DiagramStyleLocation(root, "AfricaStage-Tenant-B");
-			PumlStyleFile.FromSubscriberProfile(tenantA.SubscriberRoot, "tenant", "common")
+			new PumlStyleFile(tenantA.SubscriberRoot, "tenant", "common", PathConventionType.ItemIdTree8x2)
 				.Write(new PumlStyleSheet().Set("root", PumlStyleProperty.FontColor, "#AAAAAA"));
-			PumlStyleFile.FromSubscriberProfile(tenantB.SubscriberRoot, "tenant", "common")
+			new PumlStyleFile(tenantB.SubscriberRoot, "tenant", "common", PathConventionType.ItemIdTree8x2)
 				.Write(new PumlStyleSheet().Set("root", PumlStyleProperty.FontColor, "#BBBBBB"));
 			var provider = new DiagramStyleProvider(repository: new ImageTreeDiagramStyleRepository());
 

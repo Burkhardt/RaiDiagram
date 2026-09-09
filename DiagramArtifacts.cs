@@ -4,8 +4,13 @@ using RaiImage;
 namespace RaiDiagram;
 
 /// <summary>Clean generated PlantUML source stored under an ImageTree subscriber.</summary>
-public sealed class PumlSourceFile : ImageTreeTextFile
+public sealed class PumlSourceFile : ItemTreeTextFile
 {
+	public PumlSourceFile(ItemTreePath itemPath)
+		: base(itemPath ?? throw new ArgumentNullException(nameof(itemPath)), string.Empty, "puml")
+	{
+	}
+
 	public PumlSourceFile(
 		RaiPath subscriberRoot,
 		string itemId,
@@ -29,18 +34,27 @@ public sealed class PumlSourceFile : ImageTreeTextFile
 /// <summary>All authoritative and derived files for one subscriber-local diagram render.</summary>
 public sealed class DiagramArtifactSet
 {
+	public DiagramArtifactSet(ItemTreePath itemPath)
+	{
+		ArgumentNullException.ThrowIfNull(itemPath);
+		SubscriberRoot = itemPath.RootPath;
+		ItemId = itemPath.ItemId;
+		Convention = itemPath.Convention;
+		RaidManifest = new RaidFile(itemPath);
+		PlantUmlSource = new PumlSourceFile(itemPath);
+		PlantUmlConfig = new PumlConfigFile(itemPath);
+		Svg = new ImageTreeFile(itemPath, ext: "svg");
+	}
+
 	public DiagramArtifactSet(
 		RaiPath subscriberRoot,
 		string itemId,
 		PathConventionType convention = PathConventionType.ItemIdTree8x2)
+		: this(new ItemTreePath(
+			subscriberRoot ?? throw new ArgumentNullException(nameof(subscriberRoot)),
+			itemId,
+			convention))
 	{
-		SubscriberRoot = subscriberRoot ?? throw new ArgumentNullException(nameof(subscriberRoot));
-		ItemId = itemId;
-		Convention = convention;
-		RaidManifest = new RaidFile(subscriberRoot, itemId, convention);
-		PlantUmlSource = new PumlSourceFile(subscriberRoot, itemId, convention);
-		PlantUmlConfig = new PumlConfigFile(subscriberRoot, itemId, convention);
-		Svg = ImageTreeFile.FromItemTree(subscriberRoot, itemId, string.Empty, "svg", convention);
 	}
 
 	public RaiPath SubscriberRoot { get; }
@@ -52,5 +66,5 @@ public sealed class DiagramArtifactSet
 	public ImageTreeFile Svg { get; }
 
 	public ImageTreeFile CreateRenderedImage(string ext)
-		=> ImageTreeFile.FromItemTree(SubscriberRoot, ItemId, string.Empty, ext, Convention);
+		=> new(new ItemTreePath(SubscriberRoot, ItemId, Convention), ext: ext);
 }

@@ -1,4 +1,5 @@
 using OsLib;
+using RaiImage;
 
 namespace RaiDiagram.Tests;
 
@@ -147,6 +148,32 @@ public class RaidManifestTests
 		{
 			Cleanup(root);
 		}
+	}
+
+	[Fact]
+	public void DiagramArtifactSet_UsesOneItemTreePathForRaidPumlConfigAndSvg()
+	{
+		var subscriberRoot = Os.TempDir / "RAIkeep" / "raidiagram-tests" / "AfricaStage";
+		var itemPath = new ItemTreePath(
+			subscriberRoot,
+			"ScheduleRehearsal",
+			PathConventionType.ItemIdTree3x3);
+
+		var artifacts = new DiagramArtifactSet(itemPath);
+
+		Assert.Equal("ScheduleRehearsal.raid", artifacts.RaidManifest.NameWithExtension);
+		Assert.Equal("ScheduleRehearsal.puml", artifacts.PlantUmlSource.NameWithExtension);
+		Assert.Equal("ScheduleRehearsal_config.puml", artifacts.PlantUmlConfig.NameWithExtension);
+		Assert.Equal("ScheduleRehearsal.svg", artifacts.Svg.NameWithExtension);
+		Assert.All(
+			new[]
+			{
+				artifacts.RaidManifest.SubdirRoot.FullPath,
+				artifacts.PlantUmlSource.SubdirRoot.FullPath,
+				artifacts.PlantUmlConfig.SubdirRoot.FullPath,
+				artifacts.Svg.SubdirRoot.FullPath
+			},
+			path => Assert.Equal(itemPath.SubdirRoot.FullPath, path));
 	}
 
 	[Fact]

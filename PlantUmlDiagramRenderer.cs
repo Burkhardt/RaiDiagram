@@ -157,12 +157,9 @@ public sealed class PlantUmlDiagramRenderer : IDiagramRenderer
 
 		return new DiagramRenderResult
 		{
-			RaidManifest = ImageTreeFile.FromItemTree(
-				subscriberRoot,
-				destination.ItemId,
-				string.Empty,
-				"raid",
-				destination.Convention),
+			RaidManifest = new ImageTreeFile(
+				new ItemTreePath(subscriberRoot, destination.ItemId, destination.Convention),
+				ext: "raid"),
 			PlantUmlSource = rendered.Source,
 			PlantUmlConfig = rendered.Config
 				?? throw new DiagramRenderingException("PlantUML did not persist the resolved configuration."),

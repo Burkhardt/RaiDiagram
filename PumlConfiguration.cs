@@ -406,9 +406,14 @@ public sealed class DiagramStyleProvider : IDiagramStyleProvider
 		=> new(layer.SourceName, layer.Content, layer.Location.Subscriber, layer.ContentHash);
 }
 
-public sealed class PumlStyleFile : ImageTreeTextFile
+public sealed class PumlStyleFile : ItemTreeTextFile
 {
-	private PumlStyleFile(
+	public PumlStyleFile(ItemTreePath itemPath, string nameExt = "")
+		: base(itemPath ?? throw new ArgumentNullException(nameof(itemPath)), nameExt, "puml")
+	{
+	}
+
+	public PumlStyleFile(
 		RaiPath subscriberRoot,
 		string itemId,
 		string nameExt,
@@ -422,34 +427,6 @@ public sealed class PumlStyleFile : ImageTreeTextFile
 	{
 	}
 
-	public static PumlStyleFile FromImageTree(
-		RaiPath imageTreeRoot,
-		string subscriber,
-		string itemId,
-		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-	{
-		ArgumentNullException.ThrowIfNull(imageTreeRoot);
-		if (string.IsNullOrWhiteSpace(subscriber) || subscriber.Contains('/') || subscriber.Contains('\\'))
-			throw new ArgumentException("The style subscriber must be a plain ImageTree path segment.", nameof(subscriber));
-		return FromSubscriber(imageTreeRoot / new RaiRelPath(subscriber), itemId, convention);
-	}
-
-	public static PumlStyleFile FromSubscriber(
-		RaiPath subscriberRoot,
-		string itemId,
-		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-	{
-		ArgumentNullException.ThrowIfNull(subscriberRoot);
-		return new PumlStyleFile(subscriberRoot, itemId, string.Empty, convention);
-	}
-
-	public static PumlStyleFile FromSubscriberProfile(
-		RaiPath subscriberRoot,
-		string itemId,
-		string nameExt,
-		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-		=> new(subscriberRoot ?? throw new ArgumentNullException(nameof(subscriberRoot)), itemId, nameExt, convention);
-
 	public PumlStyleFile Write(PumlStyleSheet styleSheet)
 	{
 		ArgumentNullException.ThrowIfNull(styleSheet);
@@ -458,8 +435,13 @@ public sealed class PumlStyleFile : ImageTreeTextFile
 	}
 }
 
-public sealed class PumlConfigFile : ImageTreeTextFile
+public sealed class PumlConfigFile : ItemTreeTextFile
 {
+	public PumlConfigFile(ItemTreePath itemPath)
+		: base(itemPath ?? throw new ArgumentNullException(nameof(itemPath)), "config", "puml")
+	{
+	}
+
 	public PumlConfigFile(
 		RaiPath subscriberRoot,
 		string itemId,
@@ -471,27 +453,6 @@ public sealed class PumlConfigFile : ImageTreeTextFile
 	public PumlConfigFile(RaiPath configRoot, string name)
 		: base(configRoot ?? throw new ArgumentNullException(nameof(configRoot)), name, "config", "puml")
 	{
-	}
-
-	public static PumlConfigFile FromImageTree(
-		RaiPath imageTreeRoot,
-		string subscriber,
-		string itemId,
-		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-	{
-		ArgumentNullException.ThrowIfNull(imageTreeRoot);
-		if (string.IsNullOrWhiteSpace(subscriber) || subscriber.Contains('/') || subscriber.Contains('\\'))
-			throw new ArgumentException("The config subscriber must be a plain ImageTree path segment.", nameof(subscriber));
-		return FromImageTree(imageTreeRoot / new RaiRelPath(subscriber), itemId, convention);
-	}
-
-	public static PumlConfigFile FromImageTree(
-		RaiPath subscriberRoot,
-		string itemId,
-		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-	{
-		ArgumentNullException.ThrowIfNull(subscriberRoot);
-		return new PumlConfigFile(subscriberRoot, itemId, convention);
 	}
 
 	public PumlConfigFile Write(PumlRenderConfiguration configuration)

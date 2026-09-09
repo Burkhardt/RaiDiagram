@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.2.6 API. CR019 changes only the coordinated RaiUtils/RaiImage dependency line; the diagram API is unchanged.
+This document provides a foldable overview of the public RaiDiagram 4.2.7 API, including accepted CR020 shared ItemTree ownership.
 
 ## Manifest and semantic model
 
@@ -76,7 +76,7 @@ This document provides a foldable overview of the public RaiDiagram 4.2.6 API. C
 - <details>
   <summary><code>DiagramArtifactSet</code>, <code>RaidFile</code>, and <code>PumlSourceFile</code></summary>
 
-  Give the authoritative manifest and generated text truthful file types while placing them in the same subscriber <code>ItemTreePath</code> bucket as rendered SVG, PNG, or WebP images.
+  Give the authoritative manifest and generated text truthful file types while placing them in the same subscriber <code>ItemTreePath</code> bucket as rendered SVG, PNG, or WebP images. Constructors accepting one `ItemTreePath` make that shared ownership explicit without static factories.
   </details>
 - <details>
   <summary><code>PumlConfigFile</code> and <code>PumlStyleFile</code></summary>
@@ -86,7 +86,7 @@ This document provides a foldable overview of the public RaiDiagram 4.2.6 API. C
 - <details>
   <summary><code>PumlThemeFile</code></summary>
 
-  A PlantUML-specific `ImageTreeTextFile` that validates the theme identifier, maps it to PlantUML's required `puml-theme-&lt;name&gt;.puml` filename, and can be materialized under an ImageTree subscriber.
+  A PlantUML-specific `ItemTreeTextFile` that validates the theme identifier, maps it to PlantUML's required `puml-theme-&lt;name&gt;.puml` filename, and can be materialized under an ImageTree subscriber.
   </details>
 - <details>
   <summary><code>DiagramStyleLocation</code>, <code>IDiagramStyleRepository</code>, and <code>ImageTreeDiagramStyleRepository</code></summary>
