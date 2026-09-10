@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.2.9 API. The accepted CR020 shared ItemTree ownership API remains unchanged while RaiDiagram consumes the coordinated CR022 cloud-safe dependency line.
+This document provides a foldable overview of the public RaiDiagram 4.2.10 API. The accepted CR020 shared ItemTree ownership API remains unchanged while RaiDiagram consumes the coordinated dependency line.
 
 ## Manifest and semantic model
 
