@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.2.7 API, including accepted CR020 shared ItemTree ownership.
+This document provides a foldable overview of the public RaiDiagram 4.2.8 API. The accepted CR020 shared ItemTree ownership API remains unchanged in the coordinated CR021 dependency line.
 
 ## Manifest and semantic model
 
