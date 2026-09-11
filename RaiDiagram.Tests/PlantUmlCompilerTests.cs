@@ -34,6 +34,30 @@ public class PlantUmlCompilerTests
 	}
 
 	[Fact]
+	public void Compile_RendersActivityRoleRelationshipWithLabelAndCardinality()
+	{
+		var model = TestDiagrams.CreateActivityInteractionModel();
+
+		var result = new PlantUmlDiagramCompiler().Compile(model.Manifest);
+
+		Assert.True(result.Capabilities.CanRender);
+		Assert.Contains("allowmixing", result.Source);
+		Assert.Contains("rectangle \"Schedule review\"", result.Source);
+		Assert.Contains("object \"Nomsa\"", result.Source);
+		Assert.Contains(" --> ", result.Source);
+		Assert.Contains(" : Attendees [1..*]", result.Source);
+	}
+
+	[Fact]
+	public void AcceptedVocabulary_IsPublicAndIncludesTypedAndConciseRelationships()
+	{
+		Assert.Contains(DiagramElementKinds.Activity, PlantUmlDiagramCompiler.AcceptedElementKinds);
+		Assert.Contains(DiagramRelationshipKinds.Association, PlantUmlDiagramCompiler.AcceptedRelationshipKinds);
+		Assert.Contains("Association", PlantUmlDiagramCompiler.AcceptedRelationshipKinds);
+		Assert.Contains("Role", PlantUmlDiagramCompiler.AcceptedRelationshipKinds);
+	}
+
+	[Fact]
 	public void PumlThemeFile_UsesPlantUmlLocalThemeNamingConvention()
 	{
 		var theme = new PumlThemeFile(new RaiPath("themes"), "raikeep-sketch");

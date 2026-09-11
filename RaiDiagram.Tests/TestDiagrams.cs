@@ -27,6 +27,46 @@ internal static class TestDiagrams
 		return draft.ValidateAndFreeze();
 	}
 
+	internal static DiagramModel CreateActivityInteractionModel()
+	{
+		var manifest = new DiagramManifest
+		{
+			Diagram = new DiagramIdentity
+			{
+				Id = "ScheduleReview.interaction",
+				Title = "Schedule review interaction",
+				Kind = DiagramKind.Sequence
+			},
+			Model = new DiagramModelIdentity
+			{
+				ProviderScheme = "test-model",
+				ModelId = "theatre",
+				CapturedRevision = "r2"
+			},
+			Projection = new DiagramProjection
+			{
+				Elements =
+				[
+					new DiagramElement { Id = "activity", Kind = DiagramElementKinds.Activity, DisplayName = "Schedule review" },
+					new DiagramElement { Id = "participant", Kind = DiagramElementKinds.Object, DisplayName = "Nomsa" }
+				],
+				Relationships =
+				[
+					new DiagramRelationship
+					{
+						Id = "attendees",
+						Kind = "Role",
+						SourceId = "activity",
+						TargetId = "participant",
+						Label = "Attendees",
+						Cardinality = "1..*"
+					}
+				]
+			}
+		};
+		return DiagramModel.FromManifest(manifest);
+	}
+
 	internal static ModelElementReference Reference(string id, string? kind = null)
 		=> new() { Scheme = "test-model", Id = id, Kind = kind };
 

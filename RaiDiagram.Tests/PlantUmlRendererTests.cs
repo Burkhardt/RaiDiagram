@@ -113,6 +113,40 @@ public sealed class PlantUmlRendererTests : IDisposable
 
 	[Fact]
 	[Trait("Category", "PlantUMLIntegration")]
+	public async Task RenderAsync_UsesRealPlantUmlForActivityRelationship()
+	{
+		RequireRealPlantUml();
+		var model = TestDiagrams.CreateActivityInteractionModel();
+		var root = Os.TempDir / "RAIkeep" / "raidiagram-tests" /
+			nameof(RenderAsync_UsesRealPlantUmlForActivityRelationship);
+		Cleanup(root);
+		try
+		{
+			var result = await new PlantUmlDiagramRenderer().RenderAsync(
+				model,
+				new DiagramDestination
+				{
+					ImageTreeRoot = root / "images",
+					Subscriber = "AIA",
+					ItemId = "ScheduleReview"
+				},
+				new DiagramRenderOptions(),
+				TestContext.Current.CancellationToken);
+
+			var svg = new TextFile(result.Svg.FullName).ReadAllText();
+			Assert.Contains("Schedule review", svg, StringComparison.Ordinal);
+			Assert.Contains("Nomsa", svg, StringComparison.Ordinal);
+			Assert.Contains("Attendees", svg, StringComparison.Ordinal);
+			Assert.Contains("1..*", svg, StringComparison.Ordinal);
+		}
+		finally
+		{
+			Cleanup(root);
+		}
+	}
+
+	[Fact]
+	[Trait("Category", "PlantUMLIntegration")]
 	public async Task RenderAsync_UsesCheckedInLocalThemeWithRealPlantUml()
 	{
 		RequireRealPlantUml();

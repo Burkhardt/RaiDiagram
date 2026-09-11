@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.2.10 API. The accepted CR020 shared ItemTree ownership API remains unchanged while RaiDiagram consumes the coordinated dependency line.
+This document provides a foldable overview of the public RaiDiagram 4.2.11 API, including accepted CR023 PlantUML relationship rendering and the accepted CR020 shared ItemTree ownership API.
 
 ## Manifest and semantic model
 
@@ -66,7 +66,12 @@ This document provides a foldable overview of the public RaiDiagram 4.2.10 API. 
 - <details>
   <summary><code>PlantUmlDiagramCompiler</code></summary>
 
-  Compiles a supported `.raid` semantic graph into clean, deterministic PlantUML diagram declarations. Theme and style configuration is deliberately excluded from this source and supplied through PlantUML `-config` at render time.
+  Compiles a supported `.raid` semantic graph into clean, deterministic PlantUML element and relationship declarations. Relationships retain direction, labels, and optional cardinality; mixed diagram kinds use PlantUML `allowmixing`. Theme and style configuration is deliberately excluded from this source and supplied through PlantUML `-config` at render time.
+  </details>
+- <details>
+  <summary><code>PlantUmlDiagramCompiler.AcceptedElementKinds</code> and <code>AcceptedRelationshipKinds</code></summary>
+
+  Publish the exact case-sensitive compiler vocabulary, including typed `DiagramRelationshipKinds` values and established concise PlantUML-facing compatibility spellings such as `Role` and `Association`. `Validate(...)` reports unsupported constructs before compilation; unknown constructs remain explicit failures and are never silently omitted.
   </details>
 - <details>
   <summary><code>PumlStyleSheet</code>, <code>PumlStyleCatalog</code>, and <code>DiagramStyleProvider</code></summary>
@@ -118,4 +123,4 @@ Subscriber-scoped artifact placement and deterministic local style lookup are
 specified by
 [CR010](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR010_AfricaStage_to_RAIkeep_RaiDiagram_Subscriber_Scoped_Artifacts_and_Styles.md)
 and
-[ADR002](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR002_RaiDiagram_Subscriber_Scoped_Artifacts_and_Style_Lookup.md).
+[ADR-0002](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR-0002-RaiDiagram-Subscriber-Scoped-Artifacts-and-Styles.md).

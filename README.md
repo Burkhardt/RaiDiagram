@@ -4,6 +4,18 @@ RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
 agent-readable JSON5 manifests that keep semantic projection, model references,
 and presentation intent separate from application domain models.
 
+## 4.2.11
+
+RaiDiagram 4.2.11 implements accepted CR023. The PlantUML compiler renders
+typed and concise relationship kinds—including AIA's `Role` binding—with labels
+and cardinality. Mixed Activity/Object projections use `allowmixing` without
+flattening their declared element kinds. The compiler's exact accepted element
+and relationship vocabularies are public, while unknown constructs remain
+fail-closed.
+
+Current notes:
+[RaiDiagram_RELEASE_NOTES_4.2.11.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.11.md).
+
 ## 4.2.10
 
 RaiDiagram participates unchanged in the coordinated `4.2.10` dependency line.
@@ -141,7 +153,7 @@ failure, for example in a dedicated integration environment.
 
 See the approved
 [CR009 package design](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR009_AIA_to_RAIkeep_RaiDiagram_Package.md),
-the [package-boundary ADR](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR001_RaiDiagram_Package_Boundary.md),
+the [package-boundary ADR](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR-0001-RaiDiagram-Package-Boundary.md),
 the [subscriber artifact and style request](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR010_AfricaStage_to_RAIkeep_RaiDiagram_Subscriber_Scoped_Artifacts_and_Styles.md),
-the [subscriber placement and lookup ADR](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR002_RaiDiagram_Subscriber_Scoped_Artifacts_and_Style_Lookup.md),
+the [subscriber placement and lookup ADR](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR-0002-RaiDiagram-Subscriber-Scoped-Artifacts-and-Styles.md),
 and the [foldable API reference](https://github.com/Burkhardt/RaiDiagram/blob/main/API.md).

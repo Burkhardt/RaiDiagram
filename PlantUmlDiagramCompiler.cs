@@ -27,7 +27,7 @@ public sealed class PlantUmlCompilation
 
 public sealed class PlantUmlDiagramCompiler
 {
-	private static readonly HashSet<string> SupportedElements =
+	private static readonly string[] SupportedElements =
 	[
 		DiagramElementKinds.Role,
 		DiagramElementKinds.UseCase,
@@ -45,7 +45,7 @@ public sealed class PlantUmlDiagramCompiler
 		DiagramElementKinds.Swimlane
 	];
 
-	private static readonly HashSet<string> SupportedRelationships =
+	private static readonly string[] SupportedRelationships =
 	[
 		DiagramRelationshipKinds.RoleUseCase,
 		DiagramRelationshipKinds.RoleFilling,
@@ -59,8 +59,35 @@ public sealed class PlantUmlDiagramCompiler
 		DiagramRelationshipKinds.Containment,
 		DiagramRelationshipKinds.ControlFlow,
 		DiagramRelationshipKinds.ObjectFlow,
-		DiagramRelationshipKinds.Message
+		DiagramRelationshipKinds.Message,
+		"Association",
+		"Composition",
+		"Aggregation",
+		"Dependency",
+		"Generalization",
+		"Realization",
+		"Inheritance",
+		"Uses",
+		"Includes",
+		"Extends",
+		"Flow",
+		"Message",
+		"Link",
+		"Reference",
+		"Role"
 	];
+
+	/// <summary>The exact, case-sensitive element-kind values accepted by this compiler.</summary>
+	public static IReadOnlyList<string> AcceptedElementKinds { get; } =
+		Array.AsReadOnly(SupportedElements);
+
+	/// <summary>
+	/// The exact, case-sensitive relationship-kind values accepted by this compiler.
+	/// This includes the typed <see cref="DiagramRelationshipKinds"/> values and the
+	/// established concise PlantUML-facing compatibility spellings.
+	/// </summary>
+	public static IReadOnlyList<string> AcceptedRelationshipKinds { get; } =
+		Array.AsReadOnly(SupportedRelationships);
 
 	public DiagramCapabilityReport Validate(DiagramManifest manifest)
 	{
@@ -68,10 +95,10 @@ public sealed class PlantUmlDiagramCompiler
 		manifest.Validate();
 		var unsupported = manifest.Projection.Elements
 			.Select(item => item.Kind)
-			.Where(kind => !SupportedElements.Contains(kind))
+			.Where(kind => !SupportedElements.Contains(kind, StringComparer.Ordinal))
 			.Concat(manifest.Projection.Relationships
 				.Select(item => item.Kind)
-				.Where(kind => !SupportedRelationships.Contains(kind)))
+				.Where(kind => !SupportedRelationships.Contains(kind, StringComparer.Ordinal)))
 			.Distinct(StringComparer.Ordinal)
 			.OrderBy(kind => kind, StringComparer.Ordinal)
 			.ToArray();
@@ -102,6 +129,8 @@ public sealed class PlantUmlDiagramCompiler
 		// renderer requires the SVG to remain a sibling of its staged .puml file,
 		// so the source filename must remain authoritative.
 		source.AppendLine("@startuml");
+		if (manifest.Diagram.Kind is DiagramKind.Mixed or DiagramKind.ActivityObject or DiagramKind.Activity or DiagramKind.Sequence)
+			source.AppendLine("allowmixing");
 
 		var framedIds = manifest.Presentation.Frames
 			.SelectMany(frame => frame.ElementIds)
@@ -177,23 +206,34 @@ public sealed class PlantUmlDiagramCompiler
 		{
 			DiagramRelationshipKinds.RoleUseCase => (" --> ", (string?)null),
 			DiagramRelationshipKinds.RoleFilling => (" ..> ", "fills"),
-			DiagramRelationshipKinds.Include => (" ..> ", "<<include>>"),
-			DiagramRelationshipKinds.Extend => (" ..> ", "<<extend>>"),
-			DiagramRelationshipKinds.Association => (" -- ", (string?)null),
+			DiagramRelationshipKinds.Include or "Includes" => (" ..> ", "<<include>>"),
+			DiagramRelationshipKinds.Extend or "Extends" => (" ..> ", "<<extend>>"),
+			DiagramRelationshipKinds.Association or "Association" or "Link" => (" -- ", (string?)null),
 			DiagramRelationshipKinds.Attribute => (" --> ", "attribute"),
-			DiagramRelationshipKinds.Generalization => (" --|> ", (string?)null),
-			DiagramRelationshipKinds.Realization => (" ..|> ", (string?)null),
-			DiagramRelationshipKinds.Dependency => (" ..> ", (string?)null),
-			DiagramRelationshipKinds.Containment => (" *-- ", (string?)null),
-			DiagramRelationshipKinds.ControlFlow => (" --> ", relationship.Guard),
+			DiagramRelationshipKinds.Generalization or "Generalization" or "Inheritance" => (" --|> ", (string?)null),
+			DiagramRelationshipKinds.Realization or "Realization" => (" ..|> ", (string?)null),
+			DiagramRelationshipKinds.Dependency or "Dependency" or "Uses" or "Reference" => (" ..> ", (string?)null),
+			DiagramRelationshipKinds.Containment or "Composition" => (" *-- ", (string?)null),
+			"Aggregation" => (" o-- ", (string?)null),
+			DiagramRelationshipKinds.ControlFlow or "Flow" => (" --> ", relationship.Guard),
 			DiagramRelationshipKinds.ObjectFlow => (" --> ", "object flow"),
-			DiagramRelationshipKinds.Message => (" -> ", (string?)null),
+			DiagramRelationshipKinds.Message or "Message" => (" -> ", (string?)null),
+			"Role" => (" --> ", (string?)null),
 			_ => throw new UnsupportedDiagramConstructException(relationship.Kind)
 		};
 		var label = relationship.Label ?? defaultLabel;
 		source.Append(aliases[relationship.SourceId]).Append(arrow).Append(aliases[relationship.TargetId]);
-		if (!string.IsNullOrWhiteSpace(label))
-			source.Append(" : ").Append(EscapeLabel(label));
+		if (!string.IsNullOrWhiteSpace(label) || !string.IsNullOrWhiteSpace(relationship.Cardinality))
+		{
+			source.Append(" : ");
+			if (!string.IsNullOrWhiteSpace(label))
+				source.Append(EscapeLabel(label));
+			if (!string.IsNullOrWhiteSpace(relationship.Cardinality))
+			{
+				if (!string.IsNullOrWhiteSpace(label)) source.Append(' ');
+				source.Append('[').Append(EscapeLabel(relationship.Cardinality)).Append(']');
+			}
+		}
 		source.AppendLine();
 	}
 
