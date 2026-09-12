@@ -114,7 +114,17 @@ public static class RaidJson5
 public sealed class RaidFile : ItemTreeTextFile
 {
 	public RaidFile(ItemTreePath itemPath)
-		: base(itemPath ?? throw new ArgumentNullException(nameof(itemPath)), string.Empty, "raid")
+		: this(itemPath, string.Empty)
+	{
+	}
+
+	public RaidFile(ItemTreePath itemPath, string nameExt)
+		: this(itemPath, ItemTreeTextFile.NoItemNumber, nameExt)
+	{
+	}
+
+	public RaidFile(ItemTreePath itemPath, int itemNumber, string nameExt)
+		: base(itemPath ?? throw new ArgumentNullException(nameof(itemPath)), itemNumber, nameExt, "raid")
 	{
 		EnsureExtension();
 	}

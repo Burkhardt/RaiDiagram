@@ -4,9 +4,27 @@ RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
 agent-readable JSON5 manifests that keep semantic projection, model references,
 and presentation intent separate from application domain models.
 
-## 4.2.11
+## 4.3.0
 
-RaiDiagram 4.2.11 implements accepted CR023. The PlantUML compiler renders
+RaiDiagram 4.3.0 implements accepted CR025 with typed builders for one-use-case,
+role-filler/object, class, activity, and sequence diagrams. Builders expose the
+base `ItemId`, optional `ItemNumber`, and archetype `NameExt` separately while
+producing canonical diagram identities such as `SignContract_02_UCD`.
+
+The managed compiler injects `allowmixing` only for actual cross-grammar object
+mixtures, emits native activity and sequence syntax, and remains free of Java or
+Graphviz requirements. The optional server renderer is retained and its release
+suite requires the complete PlantUML 1.2026.8 CLI. `.raid`, `.puml`, config, and
+`.svg` files are co-located through `DiagramArtifactSet` and the existing
+`ItemTreePath` conventions.
+
+Current notes:
+[RaiDiagram_RELEASE_NOTES_4.3.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.3.0.md).
+
+## 4.2.11 (superseded before publication)
+
+This prepared line was not published; its CR023 changes are carried by v4.3.0.
+The PlantUML compiler renders
 typed and concise relationship kinds—including AIA's `Role` binding—with labels
 and cardinality. Mixed Activity/Object projections use `allowmixing` without
 flattening their declared element kinds. The compiler's exact accepted element

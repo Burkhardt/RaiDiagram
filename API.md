@@ -1,6 +1,34 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.2.11 API, including accepted CR023 PlantUML relationship rendering and the accepted CR020 shared ItemTree ownership API.
+This document provides a foldable overview of the public RaiDiagram 4.3.0 API, including CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
+
+## Typed archetype builders
+
+- <details>
+  <summary><code>DiagramBuilder</code> identity and build contract</summary>
+
+  Exposes the base domain <code>ItemId</code> (with descriptive <code>BaseItemId</code> alias), optional <code>ItemNumber</code>, canonical archetype <code>NameExt</code>, composed <code>DiagramItemId</code>, and <code>BuildManifest()</code>. The composed identity is <code>ItemId[_NN][_NameExt]</code>, while ItemTree buckets are derived only from the base <code>ItemId</code>.
+  </details>
+- <details>
+  <summary><code>OneUseCaseDiagramBuilder</code> (<code>UCD</code>)</summary>
+
+  Builds role-first one-use-case views with a boundary frame, initiating and defined roles, object references, dependencies, and narrative notes.
+  </details>
+- <details>
+  <summary><code>RoleFillerDiagramBuilder</code> (<code>RFD</code>/<code>OD</code>)</summary>
+
+  Builds instance views with typed attributes plus Who, What, and Where role fillers.
+  </details>
+- <details>
+  <summary><code>ClassDiagramBuilder</code> (<code>CD</code>) and <code>KlOneRoleDef</code></summary>
+
+  Builds classes, attributes, methods, KL-ONE role restrictions, instances, and instance-of relationships.
+  </details>
+- <details>
+  <summary><code>ActivityDiagramBuilder</code> (<code>AD</code>) and <code>SequenceDiagramBuilder</code> (<code>SD</code>)</summary>
+
+  Build typed activity/swimlane/decision flows and chronological participant/message/divider/note sequences without hand-authoring manifest dictionaries.
+  </details>
 
 ## Manifest and semantic model
 
@@ -66,7 +94,7 @@ This document provides a foldable overview of the public RaiDiagram 4.2.11 API, 
 - <details>
   <summary><code>PlantUmlDiagramCompiler</code></summary>
 
-  Compiles a supported `.raid` semantic graph into clean, deterministic PlantUML element and relationship declarations. Relationships retain direction, labels, and optional cardinality; mixed diagram kinds use PlantUML `allowmixing`. Theme and style configuration is deliberately excluded from this source and supplied through PlantUML `-config` at render time.
+  Compiles a supported `.raid` semantic graph into clean, deterministic PlantUML element and relationship declarations using managed C# only. Relationships retain direction, labels, and optional cardinality. It injects `allowmixing` directly after `@startuml` when the actual declaration families require it. Theme and style configuration is deliberately excluded from this source and supplied through PlantUML `-config` at render time.
   </details>
 - <details>
   <summary><code>PlantUmlDiagramCompiler.AcceptedElementKinds</code> and <code>AcceptedRelationshipKinds</code></summary>
@@ -81,7 +109,7 @@ This document provides a foldable overview of the public RaiDiagram 4.2.11 API, 
 - <details>
   <summary><code>DiagramArtifactSet</code>, <code>RaidFile</code>, and <code>PumlSourceFile</code></summary>
 
-  Give the authoritative manifest and generated text truthful file types while placing them in the same subscriber <code>ItemTreePath</code> bucket as rendered SVG, PNG, or WebP images. Constructors accepting one `ItemTreePath` make that shared ownership explicit without static factories.
+  Give the authoritative manifest and generated text truthful file types while placing them in the same subscriber <code>ItemTreePath</code> bucket as rendered SVG, PNG, or WebP images. Constructors accept base <code>ItemId</code>, optional <code>ItemNumber</code>, and archetype <code>NameExt</code> separately; buckets use only the base identity and sibling filenames compose as <code>ItemId[_NN][_NameExt].ext</code>.
   </details>
 - <details>
   <summary><code>PumlConfigFile</code> and <code>PumlStyleFile</code></summary>
@@ -101,7 +129,12 @@ This document provides a foldable overview of the public RaiDiagram 4.2.11 API, 
 - <details>
   <summary><code>IDiagramRenderer</code> and <code>PlantUmlDiagramRenderer</code></summary>
 
-  Resolve configuration from explicit subscriber locations, persist sibling `.raid`, `.puml`, `_config.puml`, and `.svg` ImageTree artifacts under one subscriber, and invoke PlantUML with `-config` without exposing raw stream contracts.
+  Resolve configuration from explicit subscriber locations, persist sibling `.raid`, `.puml`, `_config.puml`, and `.svg` ImageTree artifacts under one subscriber, and optionally invoke PlantUML with `-config` without exposing raw stream contracts. The renderer remains a 4.x compatibility API; builders and source compilation require no Java or Graphviz installation.
+  </details>
+- <details>
+  <summary><code>PlantUmlSvgDiagnostics</code></summary>
+
+  Detects PlantUML error and warning documents in generated SVG so server-side compatibility rendering cannot silently accept diagnostic output as a successful diagram.
   </details>
 - <details>
   <summary><code>SvgProvenanceMetadata</code></summary>
@@ -124,3 +157,5 @@ specified by
 [CR010](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR010_AfricaStage_to_RAIkeep_RaiDiagram_Subscriber_Scoped_Artifacts_and_Styles.md)
 and
 [ADR-0002](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR-0002-RaiDiagram-Subscriber-Scoped-Artifacts-and-Styles.md).
+Typed builders, managed compilation, and deterministic artifact emission are specified by
+[CR025](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR025_AIA_to_RAIkeep_Typed_Raid_Builders_and_Deterministic_ItemTree_Emission.md).

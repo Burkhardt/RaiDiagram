@@ -438,7 +438,21 @@ public sealed class PumlStyleFile : ItemTreeTextFile
 public sealed class PumlConfigFile : ItemTreeTextFile
 {
 	public PumlConfigFile(ItemTreePath itemPath)
-		: base(itemPath ?? throw new ArgumentNullException(nameof(itemPath)), "config", "puml")
+		: this(itemPath, string.Empty)
+	{
+	}
+
+	public PumlConfigFile(ItemTreePath itemPath, string diagramNameExt)
+		: this(itemPath, ItemTreeTextFile.NoItemNumber, diagramNameExt)
+	{
+	}
+
+	public PumlConfigFile(ItemTreePath itemPath, int itemNumber, string diagramNameExt)
+		: base(
+			itemPath ?? throw new ArgumentNullException(nameof(itemPath)),
+			itemNumber,
+			string.IsNullOrEmpty(diagramNameExt) ? "config" : $"{diagramNameExt}_config",
+			"puml")
 	{
 	}
 

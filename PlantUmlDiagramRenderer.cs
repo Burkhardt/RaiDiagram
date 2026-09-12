@@ -8,7 +8,12 @@ public sealed class DiagramDestination
 	public required RaiPath ImageTreeRoot { get; init; }
 	/// <summary>ImageTree storage-routing segment; not an authenticated identity.</summary>
 	public required string Subscriber { get; init; }
+	/// <summary>The base ItemId used to derive the ItemTree bucket.</summary>
 	public required string ItemId { get; init; }
+	/// <summary>Optional sibling number; -1 means no numbered variant.</summary>
+	public int ItemNumber { get; init; } = ItemTreeTextFile.NoItemNumber;
+	/// <summary>Optional diagram archetype stored as the sibling files' NameExt.</summary>
+	public string NameExt { get; init; } = string.Empty;
 	public PathConventionType Convention { get; init; } = PathConventionType.ItemIdTree8x2;
 
 	public RaiPath CreateSubscriberRoot()
@@ -92,7 +97,8 @@ public sealed class PlantUmlDiagramRenderer : IDiagramRenderer
 		ArgumentNullException.ThrowIfNull(destination);
 		options ??= new DiagramRenderOptions();
 		var subscriberRoot = destination.CreateSubscriberRoot();
-		var artifacts = new DiagramArtifactSet(subscriberRoot, destination.ItemId, destination.Convention);
+		var itemPath = new ItemTreePath(subscriberRoot, destination.ItemId, destination.Convention);
+		var artifacts = new DiagramArtifactSet(itemPath, destination.ItemNumber, destination.NameExt);
 		var compilation = compiler.Compile(diagram.Manifest, options.PlantUml);
 		var repository = options.StyleRepository
 			?? new ImageTreeDiagramStyleRepository(destination.Convention);
@@ -117,9 +123,11 @@ public sealed class PlantUmlDiagramRenderer : IDiagramRenderer
 		var styleLayers = resolvedStyle.Layers.Select(layer => layer.ProvenanceId).ToArray();
 
 		var rendered = await Task.Run(
-			() => ImageTreeFile.RenderPlantUmlAtSubscriber(
+			() => ImageTreeFile.RenderPlantUmlArtifactAtSubscriber(
 				subscriberRoot,
 				destination.ItemId,
+				destination.ItemNumber,
+				destination.NameExt,
 				compilation.Source,
 				configSource,
 				destination.Convention),
@@ -129,6 +137,7 @@ public sealed class PlantUmlDiagramRenderer : IDiagramRenderer
 		var svgText = new TextFile(rendered.Svg.FullName);
 		if (!svgText.Exists())
 			throw new DiagramRenderingException($"PlantUML did not materialize the expected SVG '{rendered.Svg.FullName}'.");
+		PlantUmlSvgDiagnostics.ThrowIfErrorDocument(svgText.ReadAllText());
 
 		var provenance = new SvgProvenance
 		{
@@ -155,11 +164,17 @@ public sealed class PlantUmlDiagramRenderer : IDiagramRenderer
 			|| !verified.StyleLayers.SequenceEqual(provenance.StyleLayers, StringComparer.Ordinal))
 			throw new SvgProvenanceException("The rendered SVG provenance did not verify after persistence.");
 
+		var manifestImage = new ImageTreeFile(
+			itemPath,
+			destination.NameExt,
+			"raid",
+			ImageNamingConvention.Structured);
+		if (destination.ItemNumber != ItemTreeTextFile.NoItemNumber)
+			manifestImage.ImageNumber = destination.ItemNumber;
+
 		return new DiagramRenderResult
 		{
-			RaidManifest = new ImageTreeFile(
-				new ItemTreePath(subscriberRoot, destination.ItemId, destination.Convention),
-				ext: "raid"),
+			RaidManifest = manifestImage,
 			PlantUmlSource = rendered.Source,
 			PlantUmlConfig = rendered.Config
 				?? throw new DiagramRenderingException("PlantUML did not persist the resolved configuration."),

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_ref:
-        description: "Existing immutable release tag to build (for example v4.2.2)"
+        description: "Existing immutable release tag to build (for example v4.3.0)"
         required: true
         type: string
       skip_external_plantuml_tests:
@@ -33,6 +33,27 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+
+      - name: Setup Java for PlantUML verification
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install pinned PlantUML CLI 1.2026.8
+        shell: bash
+        run: |
+          PLANTUML_VERSION="1.2026.8"
+          PLANTUML_JAR="${RUNNER_TEMP}/plantuml-${PLANTUML_VERSION}.jar"
+          curl --fail --location --silent --show-error \
+            --output "${PLANTUML_JAR}" \
+            "https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
+          echo "5e1ecfa8ecd32c90b03bbf3b1eb6f020943f98ab0fcf4032be31a0002ee2c462  ${PLANTUML_JAR}" | sha256sum --check
+          java -Djava.awt.headless=true -jar "${PLANTUML_JAR}" -version
+          dot -V
+          echo "RAIDIAGRAM_PLANTUML_JAR=${PLANTUML_JAR}" >> "${GITHUB_ENV}"
+          echo "RAIDIAGRAM_REQUIRE_REAL_PLANTUML=1" >> "${GITHUB_ENV}"
+          echo "JAVA_TOOL_OPTIONS=-Djava.awt.headless=true" >> "${GITHUB_ENV}"
 
       - name: Validate tag matches csproj version
         shell: bash

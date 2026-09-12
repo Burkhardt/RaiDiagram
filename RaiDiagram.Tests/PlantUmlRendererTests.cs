@@ -147,6 +147,68 @@ public sealed class PlantUmlRendererTests : IDisposable
 
 	[Fact]
 	[Trait("Category", "PlantUMLIntegration")]
+	public async Task TypedBuilders_RenderWithoutDiagnosticsOnPlantUml_1_2026_8()
+	{
+		RequireRealPlantUml();
+		var version = new PlantUmlCommand().Run("-version");
+		Assert.Equal(0, version.ExitCode);
+		Assert.Contains("1.2026.8", version.Output, StringComparison.Ordinal);
+		var diagrams = new[]
+		{
+			(DiagramBuilderTests.CreateUseCaseBuilder().BuildManifest(), "SignContract", "UCD"),
+			(new RaiDiagram.Builders.RoleFillerDiagramBuilder("cvhzhi", DiagramBuilderTests.Model())
+				.SetInstance("cvhzhi", "Show")
+				.AddWhoFiller("Owner", "Adele")
+				.AddWhatFiller("Contract", "Contract42", "Contract")
+				.BuildManifest(), "cvhzhi", "RFD"),
+			(new RaiDiagram.Builders.ClassDiagramBuilder("Show", DiagramBuilderTests.Model())
+				.SetClass("Show", ["Name : string"], [new("Venue", "Place", "1..1")], ["Schedule()"])
+				.AddInstance("Samstag26", "Show")
+				.BuildManifest(), "Show", "CD"),
+			(DiagramBuilderTests.CreateActivityBuilder().BuildManifest(), "ActWorkspaceGenesis", "AD"),
+			(DiagramBuilderTests.CreateSequenceBuilder().BuildManifest(), "ConfirmAvailability", "SD")
+		};
+		var root = Os.TempDir / "RAIkeep" / "raidiagram-tests" /
+			nameof(TypedBuilders_RenderWithoutDiagnosticsOnPlantUml_1_2026_8);
+		Cleanup(root);
+		try
+		{
+			foreach (var (manifest, itemId, nameExt) in diagrams)
+			{
+				DiagramRenderResult result;
+				try
+				{
+					result = await new PlantUmlDiagramRenderer().RenderAsync(
+						DiagramModel.FromManifest(manifest),
+						new DiagramDestination
+						{
+							ImageTreeRoot = root / "images",
+							Subscriber = "CR025",
+							ItemId = itemId,
+							NameExt = nameExt
+						},
+						cancellationToken: TestContext.Current.CancellationToken);
+				}
+				catch (Exception exception)
+				{
+					Assert.Fail($"{manifest.Diagram.Id} failed PlantUML 1.2026.8 validation.\n" +
+						new PlantUmlDiagramCompiler().Compile(manifest).Source + "\n" +
+						$"{exception.GetType().Name}: {exception.Message}");
+					return;
+				}
+				var svg = new TextFile(result.Svg.FullName).ReadAllText();
+				Assert.False(PlantUmlSvgDiagnostics.IsErrorDocument(svg));
+				Assert.False(PlantUmlSvgDiagnostics.ContainsVersionWarning(svg));
+			}
+		}
+		finally
+		{
+			Cleanup(root);
+		}
+	}
+
+	[Fact]
+	[Trait("Category", "PlantUMLIntegration")]
 	public async Task RenderAsync_UsesCheckedInLocalThemeWithRealPlantUml()
 	{
 		RequireRealPlantUml();
@@ -230,7 +292,9 @@ public sealed class PlantUmlRendererTests : IDisposable
 			Assert.Contains("componentDiagram", config);
 			Assert.Contains("#445566", config);
 			Assert.DoesNotContain("classDiagram", config);
-			Assert.Contains("fill=\"#445566\"", svg, StringComparison.OrdinalIgnoreCase);
+			Assert.Contains(
+				new[] { "fill=\"#445566\"", "fill=\"#456\"" },
+				candidate => svg.Contains(candidate, StringComparison.OrdinalIgnoreCase));
 		}
 		finally
 		{
@@ -292,7 +356,9 @@ public sealed class PlantUmlRendererTests : IDisposable
 			Assert.Contains("subscriber=RAIkeep", config);
 			Assert.Contains("subscriber=AfricaStage", config);
 			Assert.Contains("#445566", config);
-			Assert.Contains("fill=\"#445566\"", svg, StringComparison.OrdinalIgnoreCase);
+			Assert.Contains(
+				new[] { "fill=\"#445566\"", "fill=\"#456\"" },
+				candidate => svg.Contains(candidate, StringComparison.OrdinalIgnoreCase));
 			Assert.DoesNotContain("Please use '!option handwritten true'", svg, StringComparison.Ordinal);
 			Assert.Contains("font-family=\"Chalkduster, Comic Sans MS\"", svg, StringComparison.Ordinal);
 			Assert.Equal(result.StyleHash, provenance.StyleHash);

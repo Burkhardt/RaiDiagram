@@ -26,7 +26,10 @@ public static class DiagramElementKinds
 	public const string Event = "Event";
 	public const string Note = "Note";
 	public const string Frame = "Frame";
+	public const string BoundaryFrame = "BoundaryFrame";
 	public const string Swimlane = "Swimlane";
+	public const string Decision = "Decision";
+	public const string Divider = "Divider";
 }
 
 public static class DiagramRelationshipKinds
@@ -44,6 +47,9 @@ public static class DiagramRelationshipKinds
 	public const string ControlFlow = "ControlFlowConnector";
 	public const string ObjectFlow = "ObjectFlowConnector";
 	public const string Message = "MessageConnector";
+	public const string AsyncMessage = "AsyncMessageConnector";
+	public const string ReturnMessage = "ReturnMessageConnector";
+	public const string InstanceOf = "InstanceOfConnector";
 }
 
 public sealed class DiagramIdentity
@@ -160,7 +166,10 @@ public sealed class DiagramManifest
 				throw new RaidSchemaException(
 					$"Element '{element.Id}' refers to missing parent '{element.ParentId}'.");
 			if (element.ParentId is not null
-				&& elements[element.ParentId].Kind is not (DiagramElementKinds.Frame or DiagramElementKinds.Swimlane))
+				&& elements[element.ParentId].Kind is not (
+					DiagramElementKinds.Frame
+					or DiagramElementKinds.BoundaryFrame
+					or DiagramElementKinds.Swimlane))
 				throw new RaidSchemaException(
 					$"Element '{element.Id}' can only be nested inside a Frame or Swimlane.");
 		}
