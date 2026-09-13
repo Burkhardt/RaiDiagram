@@ -40,6 +40,13 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Install Graphviz for PlantUML verification
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes graphviz
+          dot -V
+
       - name: Install pinned PlantUML CLI 1.2026.8
         shell: bash
         run: |
@@ -50,7 +57,6 @@ jobs:
             "https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
           echo "5e1ecfa8ecd32c90b03bbf3b1eb6f020943f98ab0fcf4032be31a0002ee2c462  ${PLANTUML_JAR}" | sha256sum --check
           java -Djava.awt.headless=true -jar "${PLANTUML_JAR}" -version
-          dot -V
           echo "RAIDIAGRAM_PLANTUML_JAR=${PLANTUML_JAR}" >> "${GITHUB_ENV}"
           echo "RAIDIAGRAM_REQUIRE_REAL_PLANTUML=1" >> "${GITHUB_ENV}"
           echo "JAVA_TOOL_OPTIONS=-Djava.awt.headless=true" >> "${GITHUB_ENV}"
