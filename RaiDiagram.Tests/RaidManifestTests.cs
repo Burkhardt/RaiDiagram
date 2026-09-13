@@ -22,6 +22,7 @@ public class RaidManifestTests
 		  model: {
 		    providerScheme: 'test-model',
 		    modelId: 'theatre',
+		    capturedRevision: '2026-08-19T04:44:46.7202080+00:00',
 		  },
 		  projection: {
 		    elements: [],
@@ -45,6 +46,7 @@ public class RaidManifestTests
 		Assert.Equal("ScheduleRehearsal", manifest.Diagram.Id);
 		Assert.Equal(DiagramKind.UseCase, manifest.Diagram.Kind);
 		Assert.Equal("test-model", manifest.Model.ProviderScheme);
+		Assert.Equal("2026-08-19T04:44:46.7202080+00:00", manifest.Model.CapturedRevision);
 		Assert.Equal("agent-readablemanifest", manifest.Diagram.Purpose);
 		Assert.Equal("16", manifest.Presentation.LayoutHints["hexValue"]);
 		Assert.Equal("0.5", manifest.Presentation.LayoutHints["leadingDecimal"]);
@@ -73,6 +75,23 @@ public class RaidManifestTests
 
 		Assert.Equal("Schedule rehearsal", model.Manifest.Diagram.Title);
 		Assert.Equal(DiagramSemanticHasher.Compute(model.Manifest), model.SemanticHash);
+	}
+
+	[Theory]
+	[InlineData("2026-08-19T04:44:46.7202080Z")]
+	[InlineData("2026-08-19T04:44:46.7202080+00:00")]
+	[InlineData("r42")]
+	public void DiagramModel_FromManifestPreservesCapturedRevisionVerbatim(string capturedRevision)
+	{
+		var manifest = TestDiagrams.CreateUseCaseModel().Manifest;
+		manifest.Model.CapturedRevision = capturedRevision;
+
+		var snapshot = DiagramModel.FromManifest(manifest).Manifest;
+		var serialized = RaidJson5.Serialize(snapshot);
+		var reparsed = RaidJson5.Parse(serialized);
+
+		Assert.Equal(capturedRevision, snapshot.Model.CapturedRevision);
+		Assert.Equal(capturedRevision, reparsed.Model.CapturedRevision);
 	}
 
 	[Fact]

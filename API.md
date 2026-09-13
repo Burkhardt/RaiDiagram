@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.3.0 API, including CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
+This document provides a foldable overview of the public RaiDiagram 4.3.1 API, including CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
 
 ## Typed archetype builders
 
@@ -12,7 +12,7 @@ This document provides a foldable overview of the public RaiDiagram 4.3.0 API, i
 - <details>
   <summary><code>OneUseCaseDiagramBuilder</code> (<code>UCD</code>)</summary>
 
-  Builds role-first one-use-case views with a boundary frame, initiating and defined roles, object references, dependencies, and narrative notes.
+  Builds role-first one-use-case views with a boundary frame, initiating and defined roles, object references, dependencies, and narrative notes. `AddObjectReference(targetName, bucket, cardinality, stereotype)` renders an explicit stereotype verb when supplied; a null stereotype preserves `«references {bucket}»`.
   </details>
 - <details>
   <summary><code>RoleFillerDiagramBuilder</code> (<code>RFD</code>/<code>OD</code>)</summary>
@@ -35,7 +35,7 @@ This document provides a foldable overview of the public RaiDiagram 4.3.0 API, i
 - <details>
   <summary><code>DiagramManifest</code>, <code>DiagramIdentity</code>, and <code>DiagramModel</code></summary>
 
-  Represent the authoritative `.raid` document, stable diagram identity, model binding, semantic projection, presentation intent, and annotations.
+  Represent the authoritative `.raid` document, stable diagram identity, model binding, semantic projection, presentation intent, and annotations. `CapturedRevision` is an opaque string preserved verbatim through snapshots, serialization, and parsing.
   </details>
 - <details>
   <summary><code>DiagramElement</code>, <code>DiagramRelationship</code>, and projection types</summary>

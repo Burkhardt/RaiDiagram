@@ -4,6 +4,21 @@ RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
 agent-readable JSON5 manifests that keep semantic projection, model references,
 and presentation intent separate from application domain models.
 
+## 4.3.1
+
+RaiDiagram 4.3.1 implements accepted CR026. `CapturedRevision` is preserved as
+an opaque exact string through typed builders, model snapshots, serialization,
+and hand-authored JSON5 `.raid` parsing. ISO-looking values retain their exact
+precision and offset instead of being converted through the current culture or
+machine time zone.
+
+`OneUseCaseDiagramBuilder.AddObjectReference(...)` now accepts an optional
+`stereotype`. Explicit verbs such as `produces` render directly as `«produces»`;
+omitting the argument preserves the established `«references {bucket}»` label.
+
+Current notes:
+[RaiDiagram_RELEASE_NOTES_4.3.1.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.3.1.md).
+
 ## 4.3.0
 
 RaiDiagram 4.3.0 implements accepted CR025 with typed builders for one-use-case,

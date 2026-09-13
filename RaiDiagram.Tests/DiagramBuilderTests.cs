@@ -31,6 +31,48 @@ public sealed class DiagramBuilderTests
 		Assert.Contains("note right of", source);
 	}
 
+	[Theory]
+	[InlineData("2026-08-19T04:44:46.7202080Z")]
+	[InlineData("2026-08-19T04:44:46.7202080+00:00")]
+	[InlineData("r42")]
+	public void OneUseCaseBuilder_PreservesCapturedRevisionVerbatim(string capturedRevision)
+	{
+		var model = Model();
+		model.CapturedRevision = capturedRevision;
+
+		var manifest = new OneUseCaseDiagramBuilder("Probe", model)
+			.SetMainUseCase("Probe")
+			.BuildManifest();
+
+		Assert.Equal(capturedRevision, manifest.Model.CapturedRevision);
+	}
+
+	[Fact]
+	public void OneUseCaseBuilder_ObjectReferenceSupportsExplicitStereotypeAndPreservesDefault()
+	{
+		var explicitManifest = new OneUseCaseDiagramBuilder("ProduceWorkspace", Model())
+			.SetMainUseCase("Produce workspace")
+			.AddObjectReference("Workspace", "What", "0..*", "produces")
+			.BuildManifest();
+		var defaultManifest = new OneUseCaseDiagramBuilder("ReferenceWorkspace", Model())
+			.SetMainUseCase("Reference workspace")
+			.AddObjectReference("Workspace", "What", "0..*")
+			.BuildManifest();
+
+		var explicitRelationship = Assert.Single(explicitManifest.Projection.Relationships);
+		var defaultRelationship = Assert.Single(defaultManifest.Projection.Relationships);
+		Assert.Equal("«produces»", explicitRelationship.Label);
+		Assert.Equal("«references What»", defaultRelationship.Label);
+		Assert.Equal("0..*", explicitRelationship.Cardinality);
+		Assert.Equal("0..*", defaultRelationship.Cardinality);
+
+		var explicitSource = new PlantUmlDiagramCompiler().Compile(explicitManifest).Source;
+		var defaultSource = new PlantUmlDiagramCompiler().Compile(defaultManifest).Source;
+		Assert.Contains("«produces» [0..*]", explicitSource);
+		Assert.DoesNotContain("«references produces»", explicitSource);
+		Assert.Contains("«references What» [0..*]", defaultSource);
+	}
+
 	[Fact]
 	public void RoleFillerBuilder_ProducesRfdAndOdIdentifiersAndMixedShapes()
 	{

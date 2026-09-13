@@ -18,8 +18,11 @@ public static class RaidJson5
 
 		try
 		{
+			var stringProtection = $"__RAIDIAGRAM_STRING_{Guid.NewGuid():N}__";
 			var parserWarnings = new List<string>();
-			var parsedJson5 = Json5Core.Json5.Parse(json5, parserWarnings);
+			var parsedJson5 = Json5Core.Json5.Parse(
+				ProtectStringLiterals(json5, stringProtection),
+				parserWarnings);
 			if (parserWarnings.Count > 0)
 				throw new RaidSchemaException(
 					"The .raid JSON5 parser reported: " + string.Join("; ", parserWarnings));
@@ -27,8 +30,14 @@ public static class RaidJson5
 			{
 				FloatFormatHandling = FloatFormatHandling.Symbol,
 				Culture = System.Globalization.CultureInfo.InvariantCulture
-			});
-			var token = JToken.Parse(normalizedJson, new JsonLoadSettings
+			}).Replace(stringProtection, string.Empty, StringComparison.Ordinal);
+
+			using var textReader = new StringReader(normalizedJson);
+			using var jsonReader = new JsonTextReader(textReader)
+			{
+				DateParseHandling = DateParseHandling.None
+			};
+			var token = JToken.Load(jsonReader, new JsonLoadSettings
 			{
 				CommentHandling = CommentHandling.Ignore,
 				DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error,
@@ -51,6 +60,61 @@ public static class RaidJson5
 		{
 			throw new RaidSchemaException("The .raid manifest is not valid supported JSON5.", exception);
 		}
+	}
+
+	private static string ProtectStringLiterals(string source, string prefix)
+	{
+		var protectedSource = new System.Text.StringBuilder(source.Length + prefix.Length);
+		for (var index = 0; index < source.Length; index++)
+		{
+			var character = source[index];
+			if (character == '/' && index + 1 < source.Length && source[index + 1] == '/')
+			{
+				do
+				{
+					protectedSource.Append(source[index]);
+					index++;
+				}
+				while (index < source.Length && source[index] != '\n');
+				if (index < source.Length)
+					protectedSource.Append(source[index]);
+				continue;
+			}
+
+			if (character == '/' && index + 1 < source.Length && source[index + 1] == '*')
+			{
+				protectedSource.Append(character).Append(source[++index]);
+				while (++index < source.Length)
+				{
+					protectedSource.Append(source[index]);
+					if (source[index] == '/' && index > 0 && source[index - 1] == '*')
+						break;
+				}
+				continue;
+			}
+
+			if (character is not ('\'' or '"'))
+			{
+				protectedSource.Append(character);
+				continue;
+			}
+
+			var quote = character;
+			protectedSource.Append(quote).Append(prefix);
+			while (++index < source.Length)
+			{
+				character = source[index];
+				protectedSource.Append(character);
+				if (character == '\\' && index + 1 < source.Length)
+				{
+					protectedSource.Append(source[++index]);
+					continue;
+				}
+				if (character == quote)
+					break;
+			}
+		}
+		return protectedSource.ToString();
 	}
 
 	/// <summary>

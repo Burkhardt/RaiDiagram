@@ -252,12 +252,16 @@ public sealed class OneUseCaseDiagramBuilder : DiagramBuilder
 	public OneUseCaseDiagramBuilder AddObjectReference(
 		string targetName,
 		string bucket = "What",
-		string cardinality = "0..1")
+		string cardinality = "0..1",
+		string? stereotype = null)
 	{
 		var useCase = RequireMainUseCase();
 		var target = AddElement($"reference-{++referenceCounter:D4}", DiagramElementKinds.Object, targetName.Trim());
+		var relationshipStereotype = stereotype is null
+			? $"references {bucket.Trim()}"
+			: stereotype;
 		AddRelationship(DiagramRelationshipKinds.Dependency, useCase.Id, target.Id,
-			Stereotype($"references {bucket.Trim()}"), cardinality);
+			Stereotype(relationshipStereotype), cardinality);
 		return this;
 	}
 
