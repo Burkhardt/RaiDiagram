@@ -4,6 +4,18 @@ RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
 agent-readable JSON5 manifests that keep semantic projection, model references,
 and presentation intent separate from application domain models.
 
+## 4.3.2
+
+RaiDiagram 4.3.2 implements accepted CR027. `ClassDiagramBuilder.SetSuperClass(...)`
+materializes a typed superclass and emits a true UML generalization from the
+superclass to the derived class. The optional stereotype is rendered on the
+inheritance edge, while superclass and instance-of edges coexist in one class
+diagram. Existing builders that do not call `SetSuperClass(...)` retain their
+4.3.1 output.
+
+Current notes:
+[RaiDiagram_RELEASE_NOTES_4.3.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.3.2.md).
+
 ## 4.3.1
 
 RaiDiagram 4.3.1 implements accepted CR026. `CapturedRevision` is preserved as

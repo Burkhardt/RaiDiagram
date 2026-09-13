@@ -119,6 +119,60 @@ public sealed class DiagramBuilderTests
 	}
 
 	[Fact]
+	public void ClassBuilder_SetSuperClassEmitsTypedGeneralizationAlongsideInstance()
+	{
+		var manifest = new ClassDiagramBuilder("Agent", Model())
+			.SetClass("Agent", attributes: ["Name : string"])
+			.SetSuperClass("Actor")
+			.AddInstance("7010", "Agent")
+			.BuildManifest();
+		var source = new PlantUmlDiagramCompiler().Compile(manifest).Source;
+
+		var actor = Assert.Single(manifest.Projection.Elements, item => item.DisplayName == "Actor");
+		var agent = Assert.Single(manifest.Projection.Elements, item => item.DisplayName == "Agent");
+		Assert.Equal(DiagramElementKinds.Class, actor.Kind);
+		Assert.Equal(DiagramElementKinds.Class, agent.Kind);
+		var generalization = Assert.Single(manifest.Projection.Relationships,
+			item => item.Kind == DiagramRelationshipKinds.Generalization);
+		Assert.Equal(actor.Id, generalization.SourceId);
+		Assert.Equal(agent.Id, generalization.TargetId);
+		Assert.Contains("class \"Actor\"", source);
+		Assert.Contains("class \"Agent\"", source);
+		Assert.Contains(" <|-- ", source);
+		Assert.Contains(" <|.. ", source);
+		Assert.Contains("«instanceOf»", source);
+	}
+
+	[Fact]
+	public void ClassBuilder_SetSuperClassSupportsStereotype()
+	{
+		var manifest = new ClassDiagramBuilder("Person", Model())
+			.SetClass("Person")
+			.SetSuperClass("Actor", "subClassOf")
+			.BuildManifest();
+		var source = new PlantUmlDiagramCompiler().Compile(manifest).Source;
+
+		var relationship = Assert.Single(manifest.Projection.Relationships);
+		Assert.Equal("«subClassOf»", relationship.Label);
+		Assert.Contains(" <|-- ", source);
+		Assert.Contains(" : «subClassOf»", source);
+	}
+
+	[Fact]
+	public void ClassBuilder_SetSuperClassRejectsInvalidOrderNameAndSecondDefinition()
+	{
+		Assert.Throws<RaidSchemaException>(() =>
+			new ClassDiagramBuilder("Agent", Model()).SetSuperClass("Actor"));
+		Assert.Throws<ArgumentException>(() =>
+			new ClassDiagramBuilder("Agent", Model()).SetClass("Agent").SetSuperClass(" "));
+
+		var builder = new ClassDiagramBuilder("Agent", Model())
+			.SetClass("Agent")
+			.SetSuperClass("Actor");
+		Assert.Throws<RaidSchemaException>(() => builder.SetSuperClass("Entity"));
+	}
+
+	[Fact]
 	public void ActivityBuilder_EmitsSwimlanesDecisionAndControlFlow()
 	{
 		var manifest = CreateActivityBuilder().BuildManifest();

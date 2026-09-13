@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.3.1 API, including CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
+This document provides a foldable overview of the public RaiDiagram 4.3.2 API, including CR027 superclass generalization, CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
 
 ## Typed archetype builders
 
@@ -22,7 +22,7 @@ This document provides a foldable overview of the public RaiDiagram 4.3.1 API, i
 - <details>
   <summary><code>ClassDiagramBuilder</code> (<code>CD</code>) and <code>KlOneRoleDef</code></summary>
 
-  Builds classes, attributes, methods, KL-ONE role restrictions, instances, and instance-of relationships.
+  Builds classes, attributes, methods, KL-ONE role restrictions, instances, and instance-of relationships. `SetSuperClass(superClassName, stereotype)` materializes one typed base class and emits a UML generalization from that superclass to the derived class; the optional stereotype labels the inheritance edge.
   </details>
 - <details>
   <summary><code>ActivityDiagramBuilder</code> (<code>AD</code>) and <code>SequenceDiagramBuilder</code> (<code>SD</code>)</summary>
@@ -159,3 +159,5 @@ and
 [ADR-0002](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR-0002-RaiDiagram-Subscriber-Scoped-Artifacts-and-Styles.md).
 Typed builders, managed compilation, and deterministic artifact emission are specified by
 [CR025](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR025_AIA_to_RAIkeep_Typed_Raid_Builders_and_Deterministic_ItemTree_Emission.md).
+Superclass materialization and UML generalization are specified by
+[CR027](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR027_AIA_to_RAIkeep_ClassDiagram_Generalization_and_SetSuperClass.md).

@@ -357,6 +357,7 @@ public sealed class RoleFillerDiagramBuilder : DiagramBuilder
 public sealed class ClassDiagramBuilder : DiagramBuilder
 {
 	private DiagramElement? classElement;
+	private DiagramElement? superClassElement;
 	private int instanceCounter;
 
 	public ClassDiagramBuilder(
@@ -393,6 +394,27 @@ public sealed class ClassDiagramBuilder : DiagramBuilder
 			classElement.RelevantFacts[$"{BuilderMetadata.ClassMethodPrefix}{++index:D4}"] =
 				ModelFactValue.String(method);
 		Manifest.Diagram.Title = name.Trim();
+		return this;
+	}
+
+	/// <summary>
+	/// Declares the single base class inherited by the class being built and emits
+	/// a UML generalization from the base class to the derived class.
+	/// </summary>
+	public ClassDiagramBuilder SetSuperClass(string superClassName, string? stereotype = null)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(superClassName);
+		var derivedClass = classElement ??
+			throw new RaidSchemaException("SetClass must be called before setting the superclass.");
+		if (superClassElement is not null)
+			throw new RaidSchemaException("The superclass has already been defined.");
+
+		superClassElement = AddElement("class-super", DiagramElementKinds.Class, superClassName.Trim());
+		AddRelationship(
+			DiagramRelationshipKinds.Generalization,
+			superClassElement.Id,
+			derivedClass.Id,
+			stereotype is null ? null : Stereotype(stereotype));
 		return this;
 	}
 

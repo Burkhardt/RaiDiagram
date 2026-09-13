@@ -163,6 +163,7 @@ public sealed class PlantUmlRendererTests : IDisposable
 				.BuildManifest(), "cvhzhi", "RFD"),
 			(new RaiDiagram.Builders.ClassDiagramBuilder("Show", DiagramBuilderTests.Model())
 				.SetClass("Show", ["Name : string"], [new("Venue", "Place", "1..1")], ["Schedule()"])
+				.SetSuperClass("ScheduledEvent", "subClassOf")
 				.AddInstance("Samstag26", "Show")
 				.BuildManifest(), "Show", "CD"),
 			(DiagramBuilderTests.CreateActivityBuilder().BuildManifest(), "ActWorkspaceGenesis", "AD"),

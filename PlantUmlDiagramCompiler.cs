@@ -247,7 +247,7 @@ public sealed class PlantUmlDiagramCompiler
 			DiagramRelationshipKinds.Extend or "Extends" => (" ..> ", "<<extend>>"),
 			DiagramRelationshipKinds.Association or "Association" or "Link" => (" -- ", (string?)null),
 			DiagramRelationshipKinds.Attribute => (" --> ", "attribute"),
-			DiagramRelationshipKinds.Generalization or "Generalization" or "Inheritance" => (" --|> ", (string?)null),
+			DiagramRelationshipKinds.Generalization or "Generalization" or "Inheritance" => (" <|-- ", (string?)null),
 			DiagramRelationshipKinds.Realization or "Realization" => (" ..|> ", (string?)null),
 			DiagramRelationshipKinds.Dependency or "Dependency" or "Uses" or "Reference" => (" ..> ", (string?)null),
 			DiagramRelationshipKinds.Containment or "Composition" => (" *-- ", (string?)null),
