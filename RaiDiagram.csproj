@@ -17,7 +17,7 @@
 		<PackageIcon>HardCastle.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/Burkhardt/RaiDiagram</PackageProjectUrl>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
+		<Copyright>© Rainer Burkhardt</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiDiagram.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
