@@ -26,6 +26,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="Fixtures/ChangeRequestWorkflow.puml"
+			CopyToOutputDirectory="PreserveNewest" />
 		<None Include="../examples/ScheduleRehearsal/ScheduleRehearsal.raid"
 			Link="Examples/ScheduleRehearsal/ScheduleRehearsal.raid"
 			CopyToOutputDirectory="PreserveNewest" />

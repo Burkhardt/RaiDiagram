@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiDiagram</Title>
 		<PackageId>RaiDiagram</PackageId>
-		<Version>4.3.2</Version>
+		<Version>4.4.0</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<Description>Agent-readable semantic diagrams, model reconciliation, and PlantUML rendering for RAIkeep.</Description>
 		<TargetFramework>net10.0</TargetFramework>
@@ -21,7 +21,7 @@
 		<RepositoryUrl>https://github.com/Burkhardt/RaiDiagram.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<PackageReleaseNotes>4.3.2 implements CR027 ClassDiagramBuilder superclass generalization and UML inheritance rendering.</PackageReleaseNotes>
+		<PackageReleaseNotes>4.4.0 implements CR036 PlantUML model import, typed canvas layout, and aim-* SVG emission.</PackageReleaseNotes>
 		<RAIkeepRoot Condition="'$(RAIkeepRoot)' == '' and Exists('../OsLib/OsLib.csproj')">..</RAIkeepRoot>
 		<OsLibProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/OsLib/OsLib.csproj')">$(RAIkeepRoot)/OsLib/OsLib.csproj</OsLibProjectPath>
 		<RaiUtilsProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj')">$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj</RaiUtilsProjectPath>
@@ -29,15 +29,21 @@
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">false</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(OsLibProjectPath)' != '' and '$(RaiUtilsProjectPath)' != '' and '$(RaiImageProjectPath)' != ''">true</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == ''">false</UseLocalRAIkeepSources>
-		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.3.2</OsLibPackageVersion>
-		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.3.2</RaiUtilsPackageVersion>
-		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.3.2</RaiImagePackageVersion>
+		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.4.0</OsLibPackageVersion>
+		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.4.0</RaiUtilsPackageVersion>
+		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.4.0</RaiImagePackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<Compile Remove="RaiDiagram.Tests/**/*.cs" />
+		<Compile Remove="raid/**/*.cs" />
+		<Compile Remove="raid.Tests/**/*.cs" />
 		<None Remove="RaiDiagram.Tests/**" />
+		<None Remove="raid/**" />
+		<None Remove="raid.Tests/**" />
 		<EmbeddedResource Remove="RaiDiagram.Tests/**" />
+		<EmbeddedResource Remove="raid/**" />
+		<EmbeddedResource Remove="raid.Tests/**" />
 		<PackageReference Include="Json5Core" Version="1.0.12" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<None Include="README.md" Pack="true" PackagePath="\" />

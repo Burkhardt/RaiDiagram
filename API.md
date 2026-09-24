@@ -1,6 +1,31 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.3.2 API, including CR027 superclass generalization, CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
+This document provides a foldable overview of the public RaiDiagram 4.4.0 API, including CR036 model import and aim-SVG APIs, CR027 superclass generalization, CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
+
+## Model import and interactive SVG
+
+- <details>
+  <summary><code>IModelImporter</code>, <code>PlantUmlModelImporter</code>, and <code>RaidDiagramModel</code></summary>
+
+  `IModelImporter` is the format-neutral in-memory import boundary. The 4.4.0
+  PlantUML implementation recognizes modern activity constructs and class,
+  interface, member, generalization, association, composition, and aggregation
+  syntax. `RaidDiagramModel` exposes the validated immutable result.
+  </details>
+- <details>
+  <summary><code>DiagramCanvasPresentation</code>, nodes, edges, and points</summary>
+
+  Store typed deterministic node bounds, RaidCanvas archetypes, edge routing,
+  and optional bend points in presentation data without polluting the semantic
+  projection.
+  </details>
+- <details>
+  <summary><code>AimSvg.Emit(...)</code> and <code>AimSvg.Validate(...)</code></summary>
+
+  Emit and validate namespace-correct, finite-geometry SVG using the public
+  `aim-node`, `aim-kind`, `aim-edge`, `aim-source`, and `aim-target` hydration
+  contract.
+  </details>
 
 ## Typed archetype builders
 

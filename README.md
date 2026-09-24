@@ -4,6 +4,21 @@ RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
 agent-readable JSON5 manifests that keep semantic projection, model references,
 and presentation intent separate from application domain models.
 
+## 4.4.0
+
+RaiDiagram 4.4.0 implements accepted CR036. `IModelImporter` and
+`PlantUmlModelImporter` provide an extensible, filesystem-independent import
+boundary for modern PlantUML activity and class diagrams. Imported manifests
+carry typed deterministic canvas nodes and edges. `AimSvg.Emit(...)` and
+`AimSvg.Validate(...)` implement the public RaidCanvas hydration contract with
+finite geometry and explicit `aim-node`/`aim-edge` endpoints.
+
+The command harness ships separately from the dedicated
+[`RaidCli`](https://github.com/Burkhardt/RaidCli) repository.
+
+Current notes:
+[RaiDiagram_RELEASE_NOTES_4.4.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.0.md).
+
 ## 4.3.2
 
 RaiDiagram 4.3.2 implements accepted CR027. `ClassDiagramBuilder.SetSuperClass(...)`

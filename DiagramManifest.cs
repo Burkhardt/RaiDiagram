@@ -44,6 +44,7 @@ public static class DiagramRelationshipKinds
 	public const string Realization = "RealizationConnector";
 	public const string Dependency = "DependencyConnector";
 	public const string Containment = "ContainmentConnector";
+	public const string Aggregation = "AggregationConnector";
 	public const string ControlFlow = "ControlFlowConnector";
 	public const string ObjectFlow = "ObjectFlowConnector";
 	public const string Message = "MessageConnector";
@@ -101,6 +102,38 @@ public sealed class DiagramPresentation
 	public bool Handwritten { get; set; }
 	public List<DiagramPresentationFrame> Frames { get; set; } = [];
 	public Dictionary<string, string> LayoutHints { get; set; } = new(StringComparer.Ordinal);
+	public DiagramCanvasPresentation? Canvas { get; set; }
+}
+
+/// <summary>Deterministic canvas geometry used by interactive SVG consumers.</summary>
+public sealed class DiagramCanvasPresentation
+{
+	public string Routing { get; set; } = "manhattan";
+	public List<DiagramCanvasNode> Nodes { get; set; } = [];
+	public List<DiagramCanvasEdge> Edges { get; set; } = [];
+}
+
+public sealed class DiagramCanvasNode
+{
+	public string ElementId { get; set; } = string.Empty;
+	public string Archetype { get; set; } = string.Empty;
+	public decimal X { get; set; }
+	public decimal Y { get; set; }
+	public decimal Width { get; set; }
+	public decimal Height { get; set; }
+}
+
+public sealed class DiagramCanvasEdge
+{
+	public string RelationshipId { get; set; } = string.Empty;
+	public string Routing { get; set; } = "manhattan";
+	public List<DiagramCanvasPoint> BendPoints { get; set; } = [];
+}
+
+public sealed class DiagramCanvasPoint
+{
+	public decimal X { get; set; }
+	public decimal Y { get; set; }
 }
 
 /// <summary>A visual-only grouping frame. It is deliberately excluded from the semantic hash.</summary>
@@ -227,6 +260,42 @@ public sealed class DiagramManifest
 					throw new RaidSchemaException(
 						$"Presentation frame '{frame.Id}' can only group root elements; '{elementId}' is already semantically nested.");
 			}
+		}
+
+		ValidateCanvas(Presentation.Canvas, elements, Projection.Relationships);
+	}
+
+	private static void ValidateCanvas(
+		DiagramCanvasPresentation? canvas,
+		IReadOnlyDictionary<string, DiagramElement> elements,
+		IReadOnlyCollection<DiagramRelationship> relationships)
+	{
+		if (canvas is null)
+			return;
+		if (string.IsNullOrWhiteSpace(canvas.Routing))
+			throw new RaidSchemaException("Canvas routing cannot be empty.");
+
+		EnsureUnique(canvas.Nodes.Select(item => item.ElementId), "canvas node element");
+		foreach (var node in canvas.Nodes)
+		{
+			if (!elements.ContainsKey(node.ElementId))
+				throw new RaidSchemaException($"Canvas node refers to missing element '{node.ElementId}'.");
+			if (string.IsNullOrWhiteSpace(node.Archetype))
+				throw new RaidSchemaException($"Canvas node '{node.ElementId}' requires an archetype.");
+			if (node.Width <= 0 || node.Height <= 0)
+				throw new RaidSchemaException($"Canvas node '{node.ElementId}' requires positive dimensions.");
+		}
+
+		var relationshipIds = relationships.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+		EnsureUnique(canvas.Edges.Select(item => item.RelationshipId), "canvas edge relationship");
+		foreach (var edge in canvas.Edges)
+		{
+			if (!relationshipIds.Contains(edge.RelationshipId))
+				throw new RaidSchemaException(
+					$"Canvas edge refers to missing relationship '{edge.RelationshipId}'.");
+			if (string.IsNullOrWhiteSpace(edge.Routing))
+				throw new RaidSchemaException(
+					$"Canvas edge '{edge.RelationshipId}' requires a routing strategy.");
 		}
 	}
 

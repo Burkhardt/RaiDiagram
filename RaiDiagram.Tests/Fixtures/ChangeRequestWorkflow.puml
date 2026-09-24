@@ -1,0 +1,54 @@
+@startuml ChangeRequestWorkflow
+skinparam ActivityBackgroundColor #Cyan/SkyBlue
+skinparam ActivityBorderColor #DarkSlateGray
+skinparam NoteBackgroundColor #LemonChiffon
+skinparam NoteBorderColor #DarkGoldenRod
+
+title Cross-Repository Change Request & Release Workflow
+
+|Consuming Agent (CR Author)|
+start
+:1. Create Change Request;
+note right
+  Filename: CR<NNN>_<Requester>_to_<Provider>_<Topic>.md
+  (Filename is IMMUTABLE - Provider MUST NOT rename)
+end note
+:Publish CR in repository;
+
+|Provider Agent|
+:2. Receive CR & Investigate Root Cause;
+:Implement Fix & Run Provider Test Suite;
+:Publish Package Release & Release Notes;
+note left
+  Filename: <Component>_RELEASE_NOTES_<Version>.md
+  (MUST reference exact CR document filename)
+end note
+
+|Consuming Agent (CR Author)|
+:3. Review Release Notes & Evaluate Solution;
+:Run Independent Consumer Verification Tests
+(Receiver-Led Definition of Done);
+
+if (Solution satisfies consumer requirements?) then (Yes - Accepted)
+  :Create Acceptance Evaluation Document;
+  note right
+    Filename: CR<NNN>_Accepted_<Topic>.md
+    Decision: ACCEPTED
+  end note
+  :Update package references & close CR loop;
+  stop
+else (No - Rejected)
+  :Create Rejection Evaluation Document;
+  note right
+    Filename: CR<NNN>_Rejected_<Topic>.md
+    Decision: REJECTED
+  end note
+  :Create Follow-up Sub-CR;
+  note right
+    Filename: CR<NNN>.<M>_<Requester>_to_<Provider>_<Topic>.md
+    (References exact parent CR & rejection reason)
+  end note
+  detach
+endif
+
+@enduml
