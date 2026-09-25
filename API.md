@@ -1,16 +1,22 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.4.0 API, including CR036 model import and aim-SVG APIs, CR027 superclass generalization, CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
+This document provides a foldable overview of the public RaiDiagram 4.4.1 API, including CR037 authoritative artifact management and SVG profiles, CR036 model import, CR027 superclass generalization, CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API.
+
+The 4.4.1 additions are governed by
+[`CR037_AIA_to_RAIkeep_RaidSeeder_Diagram_Artifact_Management.md`](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR037_AIA_to_RAIkeep_RaidSeeder_Diagram_Artifact_Management.md).
 
 ## Model import and interactive SVG
 
 - <details>
   <summary><code>IModelImporter</code>, <code>PlantUmlModelImporter</code>, and <code>RaidDiagramModel</code></summary>
 
-  `IModelImporter` is the format-neutral in-memory import boundary. The 4.4.0
+  `IModelImporter` is the format-neutral in-memory import boundary. The 4.4.1
   PlantUML implementation recognizes modern activity constructs and class,
   interface, member, generalization, association, composition, and aggregation
-  syntax. `RaidDiagramModel` exposes the validated immutable result.
+  syntax. Compiler-emitted PUML carries integrity-bound semantic metadata so an
+  unchanged export re-imports to an equivalent semantic AST; edited or external
+  PUML falls back to ordinary syntax parsing. `RaidDiagramModel` exposes the
+  validated immutable result.
   </details>
 - <details>
   <summary><code>DiagramCanvasPresentation</code>, nodes, edges, and points</summary>
@@ -20,11 +26,19 @@ This document provides a foldable overview of the public RaiDiagram 4.4.0 API, i
   projection.
   </details>
 - <details>
-  <summary><code>AimSvg.Emit(...)</code> and <code>AimSvg.Validate(...)</code></summary>
+  <summary><code>AimSvgProfile</code>, <code>AimSvg.Emit(...)</code>, and <code>AimSvg.Validate(...)</code></summary>
 
-  Emit and validate namespace-correct, finite-geometry SVG using the public
-  `aim-node`, `aim-kind`, `aim-edge`, `aim-source`, and `aim-target` hydration
-  contract.
+  Emit and validate namespace-correct, finite-geometry SVG. `Hydratable` emits
+  public `aim-node`, typed archetype, edge, endpoint, docking-port, routing, and
+  declared `aim-expression` metadata; it never emits dynamic `aim-satisfied`
+  state. `Plain` preserves visible vector output while omitting all `aim-*`
+  metadata.
+  </details>
+- <details>
+  <summary><code>DeterministicDiagramCanvas.Ensure(...)</code></summary>
+
+  Adds stable default node geometry, archetypes, and edge layout only when a
+  manifest has no authored canvas. Existing presentation geometry is retained.
   </details>
 
 ## Typed archetype builders
@@ -135,6 +149,16 @@ This document provides a foldable overview of the public RaiDiagram 4.4.0 API, i
   <summary><code>DiagramArtifactSet</code>, <code>RaidFile</code>, and <code>PumlSourceFile</code></summary>
 
   Give the authoritative manifest and generated text truthful file types while placing them in the same subscriber <code>ItemTreePath</code> bucket as rendered SVG, PNG, or WebP images. Constructors accept base <code>ItemId</code>, optional <code>ItemNumber</code>, and archetype <code>NameExt</code> separately; buckets use only the base identity and sibling filenames compose as <code>ItemId[_NN][_NameExt].ext</code>.
+  </details>
+- <details>
+  <summary><code>DiagramArtifactManager</code>, <code>DiagramArtifactFormat</code>, and result records</summary>
+
+  Treat `.raid` as authoritative and deterministically derive current PUML and
+  SVG in memory. `Export(...)` writes selected representations without mutating
+  the managed ItemTree. `Refresh(...)` writes only missing or byte-stale sibling
+  derivatives, performs no write for proven-current files, and never rewrites
+  the authoritative manifest. All output is created directly at its final
+  `RaiFile` pathname; no TempDir staging or directory swap is used.
   </details>
 - <details>
   <summary><code>PumlConfigFile</code> and <code>PumlStyleFile</code></summary>

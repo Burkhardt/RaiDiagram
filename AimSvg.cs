@@ -3,12 +3,21 @@ using System.Xml.Linq;
 
 namespace RaiDiagram;
 
+public enum AimSvgProfile
+{
+	Hydratable,
+	Plain
+}
+
 /// <summary>Emits and validates the public <c>aim-*</c> SVG hydration contract.</summary>
 public static class AimSvg
 {
 	private static readonly XNamespace Svg = "http://www.w3.org/2000/svg";
 
 	public static string Emit(DiagramManifest manifest)
+		=> Emit(manifest, AimSvgProfile.Hydratable);
+
+	public static string Emit(DiagramManifest manifest, AimSvgProfile profile)
 	{
 		ArgumentNullException.ThrowIfNull(manifest);
 		manifest.Validate();
@@ -18,16 +27,21 @@ public static class AimSvg
 		var width = nodes.Count == 0 ? 1 : nodes.Values.Max(item => item.X + item.Width) + 40;
 		var height = nodes.Count == 0 ? 1 : nodes.Values.Max(item => item.Y + item.Height) + 40;
 
+		var hydratable = profile == AimSvgProfile.Hydratable;
 		var root = new XElement(Svg + "svg",
 			new XAttribute("viewBox", $"0 0 {Number(width)} {Number(height)}"),
-			new XAttribute("id", manifest.Diagram.Id),
-			new XAttribute("aim-archetype", manifest.Diagram.Kind.ToString().ToLowerInvariant()),
-			new XAttribute("aim-routing", canvas.Routing),
-			new XAttribute("aim-show-expressions", "true"));
+			new XAttribute("id", manifest.Diagram.Id));
+		if (hydratable)
+		{
+			root.Add(
+				new XAttribute("aim-archetype", manifest.Diagram.Kind.ToString().ToLowerInvariant()),
+				new XAttribute("aim-routing", canvas.Routing),
+				new XAttribute("aim-show-expressions", "true"));
+		}
 
 		var definitions = new XElement(Svg + "defs",
 			new XElement(Svg + "marker",
-				new XAttribute("id", "aim-arrow"),
+				new XAttribute("id", hydratable ? "aim-arrow" : "diagram-arrow"),
 				new XAttribute("markerWidth", "10"),
 				new XAttribute("markerHeight", "10"),
 				new XAttribute("refX", "9"),
@@ -39,7 +53,7 @@ public static class AimSvg
 					new XAttribute("fill", "#4b5563"))));
 		root.Add(definitions);
 
-		var edgeLayer = new XElement(Svg + "g", new XAttribute("class", "aim-edges-layer"));
+		var edgeLayer = new XElement(Svg + "g", new XAttribute("class", hydratable ? "aim-edges-layer" : "edges-layer"));
 		foreach (var edgeLayout in canvas.Edges)
 		{
 			var relationship = manifest.Projection.Relationships.Single(
@@ -53,20 +67,31 @@ public static class AimSvg
 			var endY = target.Y;
 			var path = $"M {Number(startX)} {Number(startY)} L {Number(endX)} {Number(endY)}";
 			var group = new XElement(Svg + "g",
-				new XAttribute("class", "aim-edge"),
-				new XAttribute("aim-edge", "true"),
-				new XAttribute("aim-id", relationship.Id),
-				new XAttribute("aim-edge-kind", ToAimEdgeKind(relationship.Kind)),
-				new XAttribute("aim-source", relationship.SourceId),
-				new XAttribute("aim-target", relationship.TargetId),
-				new XAttribute("aim-routing", edgeLayout.Routing),
+				new XAttribute("class", hydratable ? "aim-edge" : "edge"),
 				new XElement(Svg + "path",
-					new XAttribute("class", "aim-edge-path"),
+					new XAttribute("class", hydratable ? "aim-edge-path" : "edge-path"),
 					new XAttribute("d", path),
 					new XAttribute("fill", "none"),
 					new XAttribute("stroke", "#4b5563"),
 					new XAttribute("stroke-width", "2"),
-					new XAttribute("marker-end", "url(#aim-arrow)")));
+					new XAttribute("marker-end", hydratable ? "url(#aim-arrow)" : "url(#diagram-arrow)")));
+			if (hydratable)
+			{
+				group.Add(
+					new XAttribute("aim-edge", "true"),
+					new XAttribute("aim-id", relationship.Id),
+					new XAttribute("aim-edge-kind", ToAimEdgeKind(relationship.Kind)),
+					new XAttribute("aim-source", relationship.SourceId),
+					new XAttribute("aim-target", relationship.TargetId),
+					new XAttribute("aim-source-port", "port-bottom"),
+					new XAttribute("aim-target-port", "port-top"),
+					new XAttribute("aim-routing", edgeLayout.Routing));
+				if (edgeLayout.BendPoints.Count > 0)
+					group.Add(new XAttribute("aim-bends", string.Join(' ', edgeLayout.BendPoints
+						.Select(point => $"{Number(point.X)},{Number(point.Y)}"))));
+				if (!string.IsNullOrWhiteSpace(relationship.Guard))
+					group.Add(new XAttribute("aim-expression", relationship.Guard));
+			}
 			var label = relationship.Label ?? relationship.Guard;
 			if (!string.IsNullOrWhiteSpace(label))
 				group.Add(new XElement(Svg + "text",
@@ -78,18 +103,20 @@ public static class AimSvg
 		}
 		root.Add(edgeLayer);
 
-		var nodeLayer = new XElement(Svg + "g", new XAttribute("class", "aim-nodes-layer"));
+		var nodeLayer = new XElement(Svg + "g", new XAttribute("class", hydratable ? "aim-nodes-layer" : "nodes-layer"));
 		foreach (var node in canvas.Nodes)
 		{
 			var element = manifest.Projection.Elements.Single(item => item.Id == node.ElementId);
 			var group = new XElement(Svg + "g",
-				new XAttribute("class", $"aim-node aim-{node.Archetype}"),
-				new XAttribute("aim-node", "true"),
-				new XAttribute($"aim-{node.Archetype}", "true"),
-				new XAttribute("aim-id", element.Id),
-				new XAttribute("aim-kind", node.Archetype),
-				new XAttribute("aim-display-name", element.DisplayName),
+				new XAttribute("class", hydratable ? $"aim-node aim-{node.Archetype}" : $"node {node.Archetype}"),
 				new XAttribute("transform", $"translate({Number(node.X)},{Number(node.Y)})"));
+			if (hydratable)
+				group.Add(
+					new XAttribute("aim-node", "true"),
+					new XAttribute($"aim-{node.Archetype}", "true"),
+					new XAttribute("aim-id", element.Id),
+					new XAttribute("aim-kind", node.Archetype),
+					new XAttribute("aim-display-name", element.DisplayName));
 
 			if (element.Kind == DiagramElementKinds.Decision)
 			{
@@ -126,11 +153,14 @@ public static class AimSvg
 
 		var document = new XDocument(new XDeclaration("1.0", "utf-8", null), root);
 		var svg = document.ToString(SaveOptions.DisableFormatting);
-		Validate(svg);
+		Validate(svg, profile);
 		return svg;
 	}
 
 	public static void Validate(string svg)
+		=> Validate(svg, AimSvgProfile.Hydratable);
+
+	public static void Validate(string svg, AimSvgProfile profile)
 	{
 		if (string.IsNullOrWhiteSpace(svg))
 			throw new RaidSchemaException("An SVG document cannot be empty.");
@@ -147,6 +177,18 @@ public static class AimSvg
 		var root = document.Root;
 		if (root?.Name != Svg + "svg")
 			throw new RaidSchemaException("The aim SVG requires the SVG namespace on its root element.");
+		if (profile == AimSvgProfile.Plain)
+		{
+			var hydrationAttribute = root.DescendantsAndSelf()
+				.Attributes()
+				.FirstOrDefault(item => item.Name.LocalName.StartsWith("aim-", StringComparison.Ordinal));
+			if (hydrationAttribute is not null)
+				throw new RaidSchemaException(
+					$"A plain SVG cannot contain hydration attribute '{hydrationAttribute.Name.LocalName}'.");
+			if (!root.Descendants().Any(item => item.Name == Svg + "rect" || item.Name == Svg + "polygon"))
+				throw new RaidSchemaException("The plain SVG contains no visible diagram nodes.");
+			return;
+		}
 		var nodes = root.Descendants(Svg + "g")
 			.Where(item => string.Equals((string?)item.Attribute("aim-node"), "true", StringComparison.Ordinal))
 			.ToList();
@@ -159,7 +201,7 @@ public static class AimSvg
 			if (!nodeIds.Add(id))
 				throw new RaidSchemaException($"The aim SVG contains duplicate node id '{id}'.");
 			var kind = RequiredAttribute(node, "aim-kind");
-			if (kind is not ("act" or "cls" or "obj"))
+			if (kind is not ("act" or "uc" or "cls" or "obj" or "per" or "plc" or "rol" or "rf"))
 				throw new RaidSchemaException($"The aim SVG node '{id}' has unsupported kind '{kind}'.");
 			var transform = RequiredAttribute(node, "transform");
 			if (transform.Contains("NaN", StringComparison.OrdinalIgnoreCase)

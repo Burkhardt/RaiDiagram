@@ -123,14 +123,29 @@ public sealed class PlantUmlDiagramCompiler
 			throw new UnsupportedDiagramConstructException(capabilities.UnsupportedConstructs[0]);
 
 		_ = options;
+		PlantUmlCompilation compilation;
 		if (manifest.Presentation.LayoutHints.TryGetValue(BuilderMetadata.CompilerProfile, out var profile))
 		{
 			if (string.Equals(profile, BuilderMetadata.ActivityProfile, StringComparison.Ordinal))
-				return CompileActivity(manifest, capabilities);
-			if (string.Equals(profile, BuilderMetadata.SequenceProfile, StringComparison.Ordinal))
-				return CompileSequence(manifest, capabilities);
+				compilation = CompileActivity(manifest, capabilities);
+			else if (string.Equals(profile, BuilderMetadata.SequenceProfile, StringComparison.Ordinal))
+				compilation = CompileSequence(manifest, capabilities);
+			else
+				compilation = CompileGeneral(manifest, capabilities);
 		}
+		else
+			compilation = CompileGeneral(manifest, capabilities);
+		return new PlantUmlCompilation
+		{
+			Source = PlantUmlRoundTripMetadata.Embed(compilation.Source, manifest),
+			Capabilities = capabilities
+		};
+	}
 
+	private static PlantUmlCompilation CompileGeneral(
+		DiagramManifest manifest,
+		DiagramCapabilityReport capabilities)
+	{
 		var aliases = manifest.Projection.Elements.ToDictionary(
 			item => item.Id,
 			item => Alias(item.Id),

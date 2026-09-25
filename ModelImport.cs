@@ -59,6 +59,8 @@ public sealed class PlantUmlModelImporter : IModelImporter
 		var source = reader.ReadToEnd();
 		if (string.IsNullOrWhiteSpace(source))
 			throw new RaidSchemaException("A PlantUML source cannot be empty.");
+		if (PlantUmlRoundTripMetadata.TryRead(source, out var roundTripManifest))
+			return RaidDiagramModel.FromManifest(roundTripManifest);
 
 		var lines = NormalizeLines(source);
 		var name = ReadDiagramName(lines) ?? "ImportedDiagram";
@@ -230,7 +232,7 @@ public sealed class PlantUmlModelImporter : IModelImporter
 		if (forks.Count > 0)
 			throw new RaidSchemaException("PlantUML activity diagram contains an unterminated fork block.");
 
-		ApplyDeterministicLayout(manifest);
+		DeterministicDiagramCanvas.Ensure(manifest);
 		return RaidDiagramModel.FromManifest(manifest);
 	}
 
@@ -336,7 +338,7 @@ public sealed class PlantUmlModelImporter : IModelImporter
 		if (manifest.Projection.Elements.Count == 0)
 			throw new RaidSchemaException("No supported PlantUML class declarations were found.");
 
-		ApplyDeterministicLayout(manifest);
+		DeterministicDiagramCanvas.Ensure(manifest);
 		return RaidDiagramModel.FromManifest(manifest);
 	}
 
@@ -358,37 +360,6 @@ public sealed class PlantUmlModelImporter : IModelImporter
 			}
 		};
 	}
-
-	private static void ApplyDeterministicLayout(DiagramManifest manifest)
-	{
-		var canvas = new DiagramCanvasPresentation();
-		var classLike = manifest.Diagram.Kind == DiagramKind.Class;
-		for (var index = 0; index < manifest.Projection.Elements.Count; index++)
-		{
-			var element = manifest.Projection.Elements[index];
-			var column = classLike ? index % 3 : 0;
-			var row = classLike ? index / 3 : index;
-			canvas.Nodes.Add(new DiagramCanvasNode
-			{
-				ElementId = element.Id,
-				Archetype = ToArchetype(element.Kind),
-				X = 40 + column * 280,
-				Y = 40 + row * 120,
-				Width = classLike ? 220 : 260,
-				Height = classLike ? 90 : 70
-			});
-		}
-		foreach (var relationship in manifest.Projection.Relationships)
-			canvas.Edges.Add(new DiagramCanvasEdge { RelationshipId = relationship.Id });
-		manifest.Presentation.Canvas = canvas;
-	}
-
-	internal static string ToArchetype(string elementKind) => elementKind switch
-	{
-		DiagramElementKinds.Activity or DiagramElementKinds.Decision or DiagramElementKinds.State => "act",
-		DiagramElementKinds.Class or DiagramElementKinds.Interface or DiagramElementKinds.Enumeration => "cls",
-		_ => "obj"
-	};
 
 	private static IReadOnlyList<string> NormalizeLines(string source)
 		=> source.Replace("\r\n", "\n", StringComparison.Ordinal)

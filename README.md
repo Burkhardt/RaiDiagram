@@ -4,20 +4,22 @@ RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
 agent-readable JSON5 manifests that keep semantic projection, model references,
 and presentation intent separate from application domain models.
 
-## 4.4.0
+## 4.4.1
 
-RaiDiagram 4.4.0 implements accepted CR036. `IModelImporter` and
-`PlantUmlModelImporter` provide an extensible, filesystem-independent import
-boundary for modern PlantUML activity and class diagrams. Imported manifests
-carry typed deterministic canvas nodes and edges. `AimSvg.Emit(...)` and
-`AimSvg.Validate(...)` implement the public RaidCanvas hydration contract with
-finite geometry and explicit `aim-node`/`aim-edge` endpoints.
+RaiDiagram 4.4.1 implements accepted CR037. `DiagramArtifactManager` treats
+`.raid` as authoritative, derives PUML and SVG deterministically, refreshes only
+missing or stale ItemTree siblings, and leaves proven-current files untouched.
+Compiler-emitted PUML round-trips through `PlantUmlModelImporter` to an
+equivalent semantic manifest. `AimSvgProfile.Hydratable` emits structural
+`aim-*`, docking-port, and declared-expression metadata but never runtime
+`aim-satisfied` state; `Plain` omits hydration metadata.
 
 The command harness ships separately from the dedicated
-[`RaidCli`](https://github.com/Burkhardt/RaidCli) repository.
+[`RaidSeeder`](https://github.com/Burkhardt/RaidSeeder) repository and installs
+the `raid` shell command.
 
 Current notes:
-[RaiDiagram_RELEASE_NOTES_4.4.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.0.md).
+[RaiDiagram_RELEASE_NOTES_4.4.1.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.1.md).
 
 ## 4.3.2
 
