@@ -4,13 +4,13 @@ RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
 agent-readable JSON5 manifests that keep semantic projection, model references,
 and presentation intent separate from application domain models.
 
-## 4.4.3
+## 4.4.4
 
-RaiDiagram participates unchanged in the synchronized eight-package CR043
-release. Its fallback dependencies align to 4.4.3.
+RaiDiagram participates unchanged in the synchronized nine-package CR044
+release. Its fallback dependencies align to 4.4.4.
 
 Current notes:
-[RaiDiagram_RELEASE_NOTES_4.4.3.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.3.md).
+[RaiDiagram_RELEASE_NOTES_4.4.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.4.md).
 
 ## 4.4.2
 
