@@ -1,5 +1,11 @@
 # RaiDiagram
 
+## 4.5.2
+
+Coordinated 4.5.2 release; public behavior is aligned with the synchronized platform.
+
+Release notes: [RaiDiagram_RELEASE_NOTES_4.5.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.2.md).
+
 ## 4.5.0
 
 Coordinated 4.5.0 dependency alignment; diagram behavior is unchanged.
@@ -265,4 +271,4 @@ and the [foldable API reference](https://github.com/Burkhardt/RaiDiagram/blob/ma
 
 ## release notes
 
-- Latest release notes: [RaiDiagram_RELEASE_NOTES_4.5.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.0.md)
+- Latest release notes: [RaiDiagram_RELEASE_NOTES_4.5.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.2.md)
