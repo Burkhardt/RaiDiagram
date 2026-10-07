@@ -30,6 +30,12 @@ public sealed class PlantUmlDiagramCompiler
 {
 	private static readonly string[] SupportedElements =
 	[
+		DiagramElementKinds.Node,
+		DiagramElementKinds.Cloud,
+		DiagramElementKinds.Database,
+		DiagramElementKinds.Component,
+		DiagramElementKinds.Artifact,
+		DiagramElementKinds.Folder,
 		DiagramElementKinds.Role,
 		DiagramElementKinds.UseCase,
 		DiagramElementKinds.Class,
@@ -227,6 +233,12 @@ public sealed class PlantUmlDiagramCompiler
 			DiagramElementKinds.Interface => "interface",
 			DiagramElementKinds.Enumeration => "enum",
 			DiagramElementKinds.Object => "object",
+			DiagramElementKinds.Node => "node",
+			DiagramElementKinds.Cloud => "cloud",
+			DiagramElementKinds.Database => "database",
+			DiagramElementKinds.Component => "component",
+			DiagramElementKinds.Artifact => "artifact",
+			DiagramElementKinds.Folder => "folder",
 			DiagramElementKinds.Activity => "rectangle",
 			DiagramElementKinds.ObjectNode => "artifact",
 			DiagramElementKinds.Lifeline => "participant",
@@ -239,14 +251,17 @@ public sealed class PlantUmlDiagramCompiler
 		};
 		var members = MemberLines(element).ToArray();
 		source.Append(indent).Append(declaration).Append(" \"").Append(label).Append("\" as ").Append(alias);
-		if (members.Length == 0)
+		var descendants = children.TryGetValue(element.Id, out var resident) ? resident : [];
+		if (members.Length == 0 && descendants.Length == 0)
 		{
 			source.AppendLine();
 			return;
 		}
 		source.AppendLine(" {");
 		foreach (var member in members)
-			source.Append(indent).Append('\t').AppendLine(EscapeLabel(member));
+			source.Append(indent).Append('\t').AppendLine(member);
+		foreach (var child in descendants)
+			AppendElement(source, manifest, child, aliases, children, depth + 1);
 		source.Append(indent).AppendLine("}");
 	}
 
@@ -261,7 +276,7 @@ public sealed class PlantUmlDiagramCompiler
 			DiagramRelationshipKinds.RoleFilling => (" ..> ", "fills"),
 			DiagramRelationshipKinds.Include or "Includes" => (" ..> ", "<<include>>"),
 			DiagramRelationshipKinds.Extend or "Extends" => (" ..> ", "<<extend>>"),
-			DiagramRelationshipKinds.Association or "Association" or "Link" => (" -- ", (string?)null),
+			DiagramRelationshipKinds.Association or "Association" or "Link" => (relationship.Directed ? " --> " : " -- ", (string?)null),
 			DiagramRelationshipKinds.Attribute => (" --> ", "attribute"),
 			DiagramRelationshipKinds.Generalization or "Generalization" or "Inheritance" => (" <|-- ", (string?)null),
 			DiagramRelationshipKinds.Realization or "Realization" => (" ..|> ", (string?)null),
@@ -492,6 +507,8 @@ public sealed class PlantUmlDiagramCompiler
 
 	private static IEnumerable<string> MemberLines(DiagramElement element)
 	{
+		if (element.ObjectProperties.Count > 0)
+			return element.ObjectProperties.Select(property => $"{property.Name} = {property.Value}");
 		var prefixes = new[]
 		{
 			BuilderMetadata.ClassAttributePrefix,

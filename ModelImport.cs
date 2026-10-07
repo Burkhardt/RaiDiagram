@@ -15,37 +15,33 @@ public interface IModelImporter
 /// <summary>The validated, immutable result returned by a model importer.</summary>
 public sealed class RaidDiagramModel
 {
-	private RaidDiagramModel(DiagramModel model)
+	private RaidDiagramModel(DiagramModel model, IReadOnlyList<PlantUmlDiagnostic>? diagnostics = null)
 	{
 		Manifest = model.Manifest;
 		SemanticHash = model.SemanticHash;
+		Diagnostics = diagnostics ?? [];
 	}
 
 	public DiagramManifest Manifest { get; }
 	public string SemanticHash { get; }
+	public IReadOnlyList<PlantUmlDiagnostic> Diagnostics { get; }
 
-	public static RaidDiagramModel FromManifest(DiagramManifest manifest)
-		=> new(DiagramModel.FromManifest(manifest));
+	public static RaidDiagramModel FromManifest(DiagramManifest manifest, IReadOnlyList<PlantUmlDiagnostic>? diagnostics = null)
+		=> new(DiagramModel.FromManifest(manifest), diagnostics);
 }
 
 /// <summary>Imports the phase-one PlantUML activity and class syntax defined by CR036.</summary>
 public sealed class PlantUmlModelImporter : IModelImporter
 {
 	private static readonly Regex StartUmlPattern = new(
-		"^@startuml(?:\\s+(?<name>[^\\s]+))?",
+		"^@startuml(?:\\s+(?<name>[^\\s]+))?$",
 		RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 	private static readonly Regex IfPattern = new(
-		"^if\\s*\\((?<condition>.*)\\)\\s*then(?:\\s*\\((?<guard>.*)\\))?",
+		"^if\\s*\\((?<condition>.*)\\)\\s*then(?:\\s*\\((?<guard>.*)\\))?$",
 		RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 	private static readonly Regex ElsePattern = new(
-		"^else(?:\\s*\\((?<guard>.*)\\))?",
+		"^else(?:\\s*\\((?<guard>.*)\\))?$",
 		RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-	private static readonly Regex ClassPattern = new(
-		"^(?<abstract>abstract\\s+)?(?<kind>class|interface)\\s+(?<name>\"[^\"]+\"|[A-Za-z_][A-Za-z0-9_.-]*)(?:\\s+as\\s+(?<alias>[A-Za-z_][A-Za-z0-9_.-]*))?",
-		RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-	private static readonly Regex RelationshipPattern = new(
-		"^(?<left>\"[^\"]+\"|[A-Za-z_][A-Za-z0-9_.-]*)\\s*(?<arrow><\\|--|-->|\\*--|o--)\\s*(?<right>\"[^\"]+\"|[A-Za-z_][A-Za-z0-9_.-]*)(?:\\s*:\\s*(?<label>.*))?$",
-		RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
 	public string FormatName => "PlantUML";
 
@@ -54,19 +50,79 @@ public sealed class PlantUmlModelImporter : IModelImporter
 			&& filePath.EndsWith(".puml", StringComparison.OrdinalIgnoreCase);
 
 	public RaidDiagramModel Import(TextReader reader)
+		=> Import(reader, "<input>");
+
+	public RaidDiagramModel Import(TextReader reader, string sourceName)
 	{
 		ArgumentNullException.ThrowIfNull(reader);
 		var source = reader.ReadToEnd();
 		if (string.IsNullOrWhiteSpace(source))
-			throw new RaidSchemaException("A PlantUML source cannot be empty.");
+			throw new PlantUmlImportException(new("PUML003", sourceName, 1, 1, "A PlantUML source cannot be empty."));
+		var lines = NormalizeLines(source);
+		var significant = lines.Select((text, index) => (Text: text.Trim(), Line: index + 1))
+			.Where(item => item.Text.Length > 0 && !item.Text.StartsWith("'", StringComparison.Ordinal)).ToArray();
+		if (significant.Length == 0)
+			throw new PlantUmlImportException(new("PUML003", sourceName, 1, 1, "No standalone diagram was supplied."));
+		if (!significant.Any(item => item.Text.StartsWith("@startuml", StringComparison.OrdinalIgnoreCase)))
+			throw new PlantUmlImportException(new("PUML003", sourceName, significant[0].Line, 1, "This is not a standalone diagram; an @startuml / @enduml envelope is required."));
+		if (!StartUmlPattern.IsMatch(significant[0].Text) || significant[^1].Text != "@enduml"
+			|| significant.Count(item => item.Text.StartsWith("@startuml", StringComparison.Ordinal)) != 1
+			|| significant.Count(item => item.Text == "@enduml") != 1)
+			throw new PlantUmlImportException(new("PUML001", sourceName, significant[0].Line, 1,
+				"Expected exactly one @startuml / @enduml diagram envelope."));
 		if (PlantUmlRoundTripMetadata.TryRead(source, out var roundTripManifest))
 			return RaidDiagramModel.FromManifest(roundTripManifest);
 
-		var lines = NormalizeLines(source);
 		var name = ReadDiagramName(lines) ?? "ImportedDiagram";
-		return LooksLikeClassDiagram(lines)
-			? ImportClass(lines, name, source)
-			: ImportActivity(lines, name, source);
+		var activity = significant.Any(item => item.Text == "start")
+			&& !significant.Any(item => System.Text.RegularExpressions.Regex.IsMatch(item.Text, "^(object|class|interface|node|component|actor|usecase) "));
+		if (activity)
+		{
+			ValidateActivitySyntax(lines, sourceName);
+			return ImportActivity(lines, name, source);
+		}
+		var manifest = CreateManifest(name, ReadTitle(lines) ?? name, DiagramKind.Mixed, source);
+		new StructuralPlantUmlParser(manifest, sourceName).Parse(lines);
+		DeterministicDiagramCanvas.Ensure(manifest);
+		return RaidDiagramModel.FromManifest(manifest, manifest.Presentation.LayoutHints
+			.Where(h => h.Key.StartsWith("plantuml.presentation.", StringComparison.Ordinal))
+			.Select(h => new PlantUmlDiagnostic("PUML101", sourceName, int.Parse(h.Key[(h.Key.LastIndexOf('.') + 1)..]), 1,
+				"Presentation directive retained but not applied by the built-in canvas renderer: " + h.Value)).ToArray());
+	}
+
+	private static void ValidateActivitySyntax(IReadOnlyList<string> lines, string sourceName)
+	{
+		var blocks = new Stack<(string Kind, bool HasElse)>();
+		var note = false;
+		var action = false;
+		for (var i = 0; i < lines.Count; i++)
+		{
+			var text = lines[i].Trim();
+			if (text.Length == 0 || text.StartsWith("'", StringComparison.Ordinal)) continue;
+			if (note) { if (text == "end note") note = false; continue; }
+			if (text.StartsWith("note ", StringComparison.Ordinal)) { note = true; continue; }
+			if (action || text.StartsWith(':')) { action = !text.EndsWith(';'); continue; }
+			if (IfPattern.IsMatch(text)) { blocks.Push(("if", false)); continue; }
+			if (text == "fork") { blocks.Push(("fork", false)); continue; }
+			if (text is "endif" or "end fork" or "fork again" || ElsePattern.IsMatch(text))
+			{
+				var expected = text.Contains("fork", StringComparison.Ordinal) ? "fork" : "if";
+				if (!blocks.TryPeek(out var block) || block.Kind != expected || (ElsePattern.IsMatch(text) && block.HasElse))
+					throw new PlantUmlImportException(new("PUML001", sourceName, i + 1, 1, "Unmatched or repeated activity branch delimiter."));
+				if (text is "endif" or "end fork") blocks.Pop();
+				else if (ElsePattern.IsMatch(text)) { blocks.Pop(); blocks.Push(("if", true)); }
+				continue;
+			}
+			if (text.StartsWith('@') || text.StartsWith("title ", StringComparison.Ordinal)
+				|| (text.StartsWith("skinparam ", StringComparison.Ordinal) && !text.Contains('{'))
+				|| (text.StartsWith('|') && text.EndsWith('|'))
+				|| text is "start" or "stop" or "detach" or "endif" or "fork" or "fork again" or "end fork"
+				|| IfPattern.IsMatch(text) || ElsePattern.IsMatch(text)) continue;
+			throw new PlantUmlImportException(new(text.StartsWith('!') ? "PUML005" : "PUML002", sourceName, i + 1, 1,
+				"Unsupported activity statement; no partial model was imported."));
+		}
+		if (note || action || blocks.Count > 0) throw new PlantUmlImportException(new("PUML001", sourceName, lines.Count, 1,
+			"Unterminated activity or note."));
 	}
 
 	private static RaidDiagramModel ImportActivity(
@@ -236,112 +292,6 @@ public sealed class PlantUmlModelImporter : IModelImporter
 		return RaidDiagramModel.FromManifest(manifest);
 	}
 
-	private static RaidDiagramModel ImportClass(
-		IReadOnlyList<string> lines,
-		string diagramId,
-		string source)
-	{
-		var manifest = CreateManifest(diagramId, ReadTitle(lines) ?? diagramId, DiagramKind.Class, source);
-		var elementsByName = new Dictionary<string, DiagramElement>(StringComparer.Ordinal);
-		var relationshipNumber = 0;
-		DiagramElement? openClass = null;
-		var memberNumber = 0;
-
-		DiagramElement GetOrAdd(string rawName, string kind = DiagramElementKinds.Class)
-		{
-			var name = Unquote(rawName);
-			if (elementsByName.TryGetValue(name, out var existing))
-				return existing;
-			var element = new DiagramElement
-			{
-				Id = UniqueElementId(name, elementsByName.Values.Select(item => item.Id)),
-				Kind = kind,
-				DisplayName = name
-			};
-			elementsByName[name] = element;
-			manifest.Projection.Elements.Add(element);
-			return element;
-		}
-
-		foreach (var sourceLine in lines)
-		{
-			var line = sourceLine.Trim();
-			if (line.Length == 0 || line.StartsWith("'") || line.StartsWith("@")
-				|| line.StartsWith("title ", StringComparison.OrdinalIgnoreCase)
-				|| line.StartsWith("skinparam ", StringComparison.OrdinalIgnoreCase))
-				continue;
-
-			if (openClass is not null)
-			{
-				if (line.StartsWith('}'))
-				{
-					openClass = null;
-					continue;
-				}
-				var member = line.TrimEnd(';').Trim();
-				if (member.Length > 0)
-				{
-					var memberKind = member.Contains('(') ? "method" : "attribute";
-					openClass.RelevantFacts[$"plantUml.{memberKind}.{++memberNumber:D4}"] =
-						ModelFactValue.String(member);
-				}
-				continue;
-			}
-
-			var declaration = ClassPattern.Match(line);
-			if (declaration.Success)
-			{
-				var displayName = Unquote(declaration.Groups["name"].Value);
-				var lookupName = declaration.Groups["alias"].Success
-					? declaration.Groups["alias"].Value
-					: displayName;
-				var kind = declaration.Groups["kind"].Value.Equals("interface", StringComparison.OrdinalIgnoreCase)
-					? DiagramElementKinds.Interface
-					: DiagramElementKinds.Class;
-				var element = GetOrAdd(lookupName, kind);
-				element.DisplayName = displayName;
-				element.Kind = kind;
-				if (declaration.Groups["abstract"].Success)
-					element.RelevantFacts["abstract"] = ModelFactValue.Boolean(true);
-				if (line.Contains('{') && !line.Contains('}'))
-				{
-					openClass = element;
-					memberNumber = 0;
-				}
-				continue;
-			}
-
-			var relationshipMatch = RelationshipPattern.Match(line);
-			if (!relationshipMatch.Success)
-				continue;
-			var left = GetOrAdd(relationshipMatch.Groups["left"].Value);
-			var right = GetOrAdd(relationshipMatch.Groups["right"].Value);
-			var arrow = relationshipMatch.Groups["arrow"].Value;
-			manifest.Projection.Relationships.Add(new DiagramRelationship
-			{
-				Id = $"relationship-{++relationshipNumber:D4}",
-				Kind = arrow switch
-				{
-					"<|--" => DiagramRelationshipKinds.Generalization,
-					"*--" => DiagramRelationshipKinds.Containment,
-					"o--" => DiagramRelationshipKinds.Aggregation,
-					_ => DiagramRelationshipKinds.Association
-				},
-				SourceId = left.Id,
-				TargetId = right.Id,
-				Label = EmptyToNull(relationshipMatch.Groups["label"].Value)
-			});
-		}
-
-		if (openClass is not null)
-			throw new RaidSchemaException($"PlantUML class '{openClass.DisplayName}' is missing its closing brace.");
-		if (manifest.Projection.Elements.Count == 0)
-			throw new RaidSchemaException("No supported PlantUML class declarations were found.");
-
-		DeterministicDiagramCanvas.Ensure(manifest);
-		return RaidDiagramModel.FromManifest(manifest);
-	}
-
 	private static DiagramManifest CreateManifest(
 		string diagramId,
 		string title,
@@ -381,37 +331,11 @@ public sealed class PlantUmlModelImporter : IModelImporter
 		=> lines.Select(line => line.Trim())
 			.FirstOrDefault(line => line.StartsWith("title ", StringComparison.OrdinalIgnoreCase))?[6..].Trim();
 
-	private static bool LooksLikeClassDiagram(IEnumerable<string> lines)
-		=> lines.Any(line => ClassPattern.IsMatch(line.Trim()) || RelationshipPattern.IsMatch(line.Trim()));
-
 	private static string CleanActivity(string value)
 		=> value.Trim().TrimStart(':').TrimEnd(';').Trim();
 
 	private static string ValueOr(string value, string fallback)
 		=> string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
-
-	private static string? EmptyToNull(string value)
-		=> string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-	private static string Unquote(string value)
-	{
-		var trimmed = value.Trim();
-		return trimmed.Length >= 2 && trimmed[0] == '"' && trimmed[^1] == '"'
-			? trimmed[1..^1]
-			: trimmed;
-	}
-
-	private static string UniqueElementId(string name, IEnumerable<string> existingIds)
-	{
-		var baseId = Regex.Replace(name.Trim().ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
-		if (baseId.Length == 0)
-			baseId = "element";
-		var used = existingIds.ToHashSet(StringComparer.Ordinal);
-		var candidate = baseId;
-		for (var suffix = 2; used.Contains(candidate); suffix++)
-			candidate = $"{baseId}-{suffix}";
-		return candidate;
-	}
 
 	private sealed record FlowTail(string ElementId, string? Guard);
 

@@ -65,6 +65,7 @@ public sealed class DiagramArtifactSet
 		RaidManifest = new RaidFile(itemPath, ItemNumber, NameExt);
 		PlantUmlSource = new PumlSourceFile(itemPath, ItemNumber, NameExt);
 		PlantUmlConfig = new PumlConfigFile(itemPath, ItemNumber, NameExt);
+		// Diagram siblings share ItemTreeTextFile's D3 numbering.
 		Svg = new ImageTreeFile(itemPath, NameExt, "svg", ImageNamingConvention.Structured);
 		if (ItemNumber != ItemTreeTextFile.NoItemNumber)
 			Svg.ImageNumber = ItemNumber;
@@ -119,7 +120,7 @@ public sealed class DiagramArtifactSet
 	{
 		get
 		{
-			var stem = ItemNumber == ItemTreeTextFile.NoItemNumber ? ItemId : $"{ItemId}_{ItemNumber:D2}";
+			var stem = ItemNumber == ItemTreeTextFile.NoItemNumber ? ItemId : $"{ItemId}_{ItemNumber:D3}";
 			return string.IsNullOrEmpty(NameExt) ? stem : $"{stem}_{NameExt}";
 		}
 	}

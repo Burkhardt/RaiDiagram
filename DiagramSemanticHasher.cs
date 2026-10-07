@@ -55,7 +55,7 @@ public static class DiagramSemanticHasher
 				.Select(CreateElement)),
 			["relationships"] = new JArray(projection.Relationships
 				.OrderBy(item => item.Id, StringComparer.Ordinal)
-				.Select(item => new JObject
+				.Select(item => AddDirection(item, new JObject
 				{
 					["id"] = item.Id,
 					["kind"] = item.Kind,
@@ -65,7 +65,7 @@ public static class DiagramSemanticHasher
 					["cardinality"] = item.Cardinality,
 					["guard"] = item.Guard,
 					["sourceReference"] = CreateReference(item.SourceReference)
-				})),
+				}))),
 			["selectionRules"] = new JArray(projection.SelectionRules
 				.OrderBy(item => item.Id, StringComparer.Ordinal)
 				.Select(item => new JObject
@@ -77,9 +77,15 @@ public static class DiagramSemanticHasher
 		};
 	}
 
+	private static JObject AddDirection(DiagramRelationship relationship, JObject value)
+	{
+		if (relationship.Directed) value["directed"] = true;
+		return value;
+	}
+
 	private static JObject CreateElement(DiagramElement item)
 	{
-		return new JObject
+		var result = new JObject
 		{
 			["id"] = item.Id,
 			["kind"] = item.Kind,
@@ -95,6 +101,13 @@ public static class DiagramSemanticHasher
 			["sourceSemanticHash"] = item.SourceSemanticHash,
 			["selectedBy"] = new JArray(item.SelectedBy.OrderBy(id => id, StringComparer.Ordinal))
 		};
+		if (item.ObjectProperties.Count > 0)
+			result["objectProperties"] = new JArray(item.ObjectProperties.Select(property => new JObject
+			{
+				["name"] = property.Name,
+				["value"] = property.Value
+			}));
+		return result;
 	}
 
 	private static JObject CreateFacts(IReadOnlyDictionary<string, ModelFactValue> facts)

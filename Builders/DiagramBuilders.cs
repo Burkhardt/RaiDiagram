@@ -11,7 +11,8 @@ public enum DiagramArchetype
 	Object,
 	Class,
 	Activity,
-	Sequence
+	Sequence,
+	Distribution
 }
 
 /// <summary>Defines a KL-ONE structural role restriction for class diagrams.</summary>
@@ -61,7 +62,7 @@ public abstract class DiagramBuilder
 		NameExt = Suffix(archetype);
 		var numberedItemId = ItemNumber == ItemTreeTextFile.NoItemNumber
 			? BaseItemId
-			: $"{BaseItemId}_{ItemNumber:D2}";
+			: $"{BaseItemId}_{ItemNumber:D3}";
 		DiagramItemId = $"{numberedItemId}_{NameExt}";
 		Manifest = new DiagramManifest
 		{
@@ -195,6 +196,7 @@ public abstract class DiagramBuilder
 		DiagramArchetype.Class => "CD",
 		DiagramArchetype.Activity => "AD",
 		DiagramArchetype.Sequence => "SD",
+		DiagramArchetype.Distribution => "VD",
 		_ => throw new ArgumentOutOfRangeException(nameof(archetype), archetype, "Unknown diagram archetype.")
 	};
 }

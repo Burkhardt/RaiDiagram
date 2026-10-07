@@ -8,11 +8,18 @@ public enum DiagramKind
 	Object,
 	ActivityObject,
 	Activity,
-	Sequence
+	Sequence,
+	Deployment
 }
 
 public static class DiagramElementKinds
 {
+	public const string Node = "Node";
+	public const string Cloud = "Cloud";
+	public const string Database = "Database";
+	public const string Component = "Component";
+	public const string Artifact = "Artifact";
+	public const string Folder = "Folder";
 	public const string Role = "Role";
 	public const string UseCase = "UseCase";
 	public const string Class = "Class";
@@ -74,6 +81,15 @@ public sealed class DiagramElement
 	public List<ModelElementReference> SourceRelationships { get; set; } = [];
 	public string? SourceSemanticHash { get; set; }
 	public List<string> SelectedBy { get; set; } = [];
+	/// <summary>Ordered object slots. Values are source text, never inferred CLR numbers or dates.</summary>
+	public List<DiagramObjectProperty> ObjectProperties { get; set; } = [];
+	public bool ShouldSerializeObjectProperties() => ObjectProperties.Count != 0;
+}
+
+public sealed class DiagramObjectProperty
+{
+	public string Name { get; set; } = string.Empty;
+	public string Value { get; set; } = string.Empty;
 }
 
 public sealed class DiagramRelationship
@@ -84,6 +100,8 @@ public sealed class DiagramRelationship
 	public string TargetId { get; set; } = string.Empty;
 	public string? Label { get; set; }
 	public string? Cardinality { get; set; }
+	public bool Directed { get; set; }
+	public bool ShouldSerializeDirected() => Directed;
 	public string? Guard { get; set; }
 	public ModelElementReference? SourceReference { get; set; }
 }
@@ -115,6 +133,12 @@ public sealed class DiagramCanvasPresentation
 
 public sealed class DiagramCanvasNode
 {
+	/// <summary>Optional drawing identity for repeated views of one semantic element (schema 1.1).</summary>
+	public string? ViewId { get; set; }
+	/// <summary>Parent drawing identity. X/Y remain relative to this drawing when specified.</summary>
+	public string? ParentViewId { get; set; }
+	[Newtonsoft.Json.JsonIgnore]
+	public string Identity => ViewId ?? ElementId;
 	public string ElementId { get; set; } = string.Empty;
 	public string Archetype { get; set; } = string.Empty;
 	public decimal X { get; set; }
@@ -125,6 +149,14 @@ public sealed class DiagramCanvasNode
 
 public sealed class DiagramCanvasEdge
 {
+	public string? ViewId { get; set; }
+	public string? SourceViewId { get; set; }
+	public string? TargetViewId { get; set; }
+	/// <summary>Complete absolute path including endpoints; never relaid out (schema 1.1).</summary>
+	public List<DiagramCanvasPoint> Waypoints { get; set; } = [];
+	public bool ShouldSerializeWaypoints() => Waypoints.Count > 0;
+	[Newtonsoft.Json.JsonIgnore]
+	public string Identity => ViewId ?? RelationshipId;
 	public string RelationshipId { get; set; } = string.Empty;
 	public string Routing { get; set; } = "manhattan";
 	public List<DiagramCanvasPoint> BendPoints { get; set; } = [];
@@ -156,6 +188,7 @@ public sealed class DiagramAnnotation
 public sealed class DiagramManifest
 {
 	public const string CurrentSchemaVersion = "1.0";
+	public const string ExtendedSchemaVersion = "1.1";
 
 	public string SchemaVersion { get; set; } = CurrentSchemaVersion;
 	public DiagramIdentity Diagram { get; set; } = new();
@@ -166,14 +199,17 @@ public sealed class DiagramManifest
 
 	public void Validate()
 	{
-		if (!string.Equals(SchemaVersion, CurrentSchemaVersion, StringComparison.Ordinal))
+		if (SchemaVersion is not (CurrentSchemaVersion or ExtendedSchemaVersion))
 			throw new RaidSchemaException(
-				$"Unsupported .raid schema version '{SchemaVersion}'. Expected '{CurrentSchemaVersion}'.");
+				$"Unsupported .raid schema version '{SchemaVersion}'. Expected '{CurrentSchemaVersion}' or '{ExtendedSchemaVersion}'.");
 		if (string.IsNullOrWhiteSpace(Diagram.Id))
 			throw new RaidSchemaException("The diagram requires an id.");
 		if (string.IsNullOrWhiteSpace(Diagram.Title))
 			throw new RaidSchemaException($"Diagram '{Diagram.Id}' requires a title.");
 		Model.Validate();
+		if (SchemaVersion != ExtendedSchemaVersion && (Diagram.Kind == DiagramKind.Deployment
+			|| Projection.Elements.Any(e => IsDeploymentContainer(e.Kind)) || Projection.Relationships.Any(r => r.Directed)))
+			throw new RaidSchemaException("Deployment elements and directed associations require schema 1.1.");
 
 		EnsureUnique(Projection.Elements.Select(item => item.Id), "diagram element");
 		EnsureUnique(Projection.Relationships.Select(item => item.Id), "diagram relationship");
@@ -193,6 +229,14 @@ public sealed class DiagramManifest
 				element.Source.Validate();
 			foreach (var fact in element.RelevantFacts)
 				fact.Value.Validate(fact.Key);
+			if (element.ObjectProperties.Count > 0)
+			{
+				if (SchemaVersion != ExtendedSchemaVersion || element.Kind != DiagramElementKinds.Object)
+					throw new RaidSchemaException("ObjectProperties require an Object element and schema 1.1.");
+				EnsureUnique(element.ObjectProperties.Select(property => property.Name), "object property");
+				if (element.ObjectProperties.Any(property => string.IsNullOrWhiteSpace(property.Name) || property.Value is null))
+					throw new RaidSchemaException("Object properties require a name and a non-null text value.");
+			}
 			foreach (var relation in element.SourceRelationships)
 				relation.Validate();
 			if (element.ParentId is not null && !elements.ContainsKey(element.ParentId))
@@ -202,7 +246,8 @@ public sealed class DiagramManifest
 				&& elements[element.ParentId].Kind is not (
 					DiagramElementKinds.Frame
 					or DiagramElementKinds.BoundaryFrame
-					or DiagramElementKinds.Swimlane))
+					or DiagramElementKinds.Swimlane)
+				&& !(SchemaVersion == ExtendedSchemaVersion && IsDeploymentContainer(elements[element.ParentId].Kind)))
 				throw new RaidSchemaException(
 					$"Element '{element.Id}' can only be nested inside a Frame or Swimlane.");
 		}
@@ -265,7 +310,11 @@ public sealed class DiagramManifest
 		ValidateCanvas(Presentation.Canvas, elements, Projection.Relationships);
 	}
 
-	private static void ValidateCanvas(
+	internal static bool IsDeploymentContainer(string kind) => kind is
+		DiagramElementKinds.Node or DiagramElementKinds.Cloud or DiagramElementKinds.Component
+		or DiagramElementKinds.Database or DiagramElementKinds.Folder or DiagramElementKinds.Artifact;
+
+	private void ValidateCanvas(
 		DiagramCanvasPresentation? canvas,
 		IReadOnlyDictionary<string, DiagramElement> elements,
 		IReadOnlyCollection<DiagramRelationship> relationships)
@@ -275,11 +324,24 @@ public sealed class DiagramManifest
 		if (string.IsNullOrWhiteSpace(canvas.Routing))
 			throw new RaidSchemaException("Canvas routing cannot be empty.");
 
-		EnsureUnique(canvas.Nodes.Select(item => item.ElementId), "canvas node element");
+		if (SchemaVersion != ExtendedSchemaVersion && (canvas.Nodes.Any(n => n.ViewId is not null || n.ParentViewId is not null)
+			|| canvas.Edges.Any(e => e.ViewId is not null || e.SourceViewId is not null || e.TargetViewId is not null || e.Waypoints.Count > 0)))
+			throw new RaidSchemaException("Drawing identities and complete waypoints require schema 1.1.");
+		EnsureUnique(canvas.Nodes.Select(item => item.Identity), "canvas node view");
+		var views = canvas.Nodes.ToDictionary(n => n.Identity, StringComparer.Ordinal);
 		foreach (var node in canvas.Nodes)
 		{
 			if (!elements.ContainsKey(node.ElementId))
 				throw new RaidSchemaException($"Canvas node refers to missing element '{node.ElementId}'.");
+			if (string.IsNullOrWhiteSpace(node.Identity)) throw new RaidSchemaException("Canvas node requires an identity.");
+			var parents = new HashSet<string>(StringComparer.Ordinal) { node.Identity };
+			var parent = node.ParentViewId;
+			while (parent is not null)
+			{
+				if (!views.TryGetValue(parent, out var parentNode)) throw new RaidSchemaException($"Missing parent view '{parent}'.");
+				if (!parents.Add(parent)) throw new RaidSchemaException("Canvas containment cycle.");
+				parent = parentNode.ParentViewId;
+			}
 			if (string.IsNullOrWhiteSpace(node.Archetype))
 				throw new RaidSchemaException($"Canvas node '{node.ElementId}' requires an archetype.");
 			if (node.Width <= 0 || node.Height <= 0)
@@ -287,12 +349,17 @@ public sealed class DiagramManifest
 		}
 
 		var relationshipIds = relationships.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-		EnsureUnique(canvas.Edges.Select(item => item.RelationshipId), "canvas edge relationship");
+		EnsureUnique(canvas.Edges.Select(item => item.Identity), "canvas edge view");
 		foreach (var edge in canvas.Edges)
 		{
 			if (!relationshipIds.Contains(edge.RelationshipId))
 				throw new RaidSchemaException(
 					$"Canvas edge refers to missing relationship '{edge.RelationshipId}'.");
+			var relation = relationships.Single(r => r.Id == edge.RelationshipId);
+			if (!views.TryGetValue(edge.SourceViewId ?? relation.SourceId, out var sourceView) || sourceView.ElementId != relation.SourceId
+				|| !views.TryGetValue(edge.TargetViewId ?? relation.TargetId, out var targetView) || targetView.ElementId != relation.TargetId)
+				throw new RaidSchemaException($"Canvas edge '{edge.Identity}' has missing or mismatched endpoint views.");
+			if (edge.Waypoints.Count == 1) throw new RaidSchemaException("Complete edge paths require at least two waypoints.");
 			if (string.IsNullOrWhiteSpace(edge.Routing))
 				throw new RaidSchemaException(
 					$"Canvas edge '{edge.RelationshipId}' requires a routing strategy.");

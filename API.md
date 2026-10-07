@@ -1,6 +1,6 @@
 # RaiDiagram API Reference
 
-This document provides a foldable overview of the public RaiDiagram 4.5.4 API, including CR037 authoritative artifact management and SVG profiles, CR036 model import, CR027 superclass generalization, CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API. RaiDiagram's public behavior is unchanged in the synchronized 4.5.4 line.
+This document provides a foldable overview of the public RaiDiagram 4.5.5 API, including CR037 authoritative artifact management and SVG profiles, CR036 model import, CR027 superclass generalization, CR026 captured-revision fidelity and reference stereotypes, CR025 typed archetype builders and deterministic ItemTree emission, accepted CR023 relationship rendering, and the accepted CR020 shared ItemTree ownership API. RaiDiagram's public behavior is unchanged in the synchronized 4.5.5 line.
 
 The 4.4.1 additions are governed by
 [`CR037_AIA_to_RAIkeep_RaidSeeder_Diagram_Artifact_Management.md`](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR037_AIA_to_RAIkeep_RaidSeeder_Diagram_Artifact_Management.md).

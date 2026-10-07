@@ -280,13 +280,13 @@ public sealed class DiagramBuilderTests
 				builder.NameExt,
 				builder.ItemNumber).Write(manifest);
 
-			Assert.Equal("SignContract_02_UCD", manifest.Diagram.Id);
+			Assert.Equal("SignContract_002_UCD", manifest.Diagram.Id);
 			Assert.Equal("SignContract", artifacts.ItemId);
 			Assert.Equal(2, artifacts.ItemNumber);
 			Assert.Equal("UCD", artifacts.NameExt);
-			Assert.Equal("SignContract_02_UCD.raid", artifacts.RaidManifest.NameWithExtension);
-			Assert.Equal("SignContract_02_UCD.puml", artifacts.PlantUmlSource.NameWithExtension);
-			Assert.Equal("SignContract_02_UCD.svg", artifacts.Svg.NameWithExtension);
+			Assert.Equal("SignContract_002_UCD.raid", artifacts.RaidManifest.NameWithExtension);
+			Assert.Equal("SignContract_002_UCD.puml", artifacts.PlantUmlSource.NameWithExtension);
+			Assert.Equal("SignContract_002_UCD.svg", artifacts.Svg.NameWithExtension);
 			Assert.EndsWith("/SignCont/SignContra/", artifacts.Svg.SubdirRoot.FullPath, StringComparison.Ordinal);
 		}
 		finally
