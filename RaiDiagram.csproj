@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiDiagram</Title>
 		<PackageId>RaiDiagram</PackageId>
-		<Version>4.5.5</Version>
+		<Version>4.5.6</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<Description>Agent-readable semantic diagrams, model reconciliation, and PlantUML rendering for RAIkeep.</Description>
 		<TargetFramework>net10.0</TargetFramework>
@@ -29,9 +29,9 @@
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">false</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(OsLibProjectPath)' != '' and '$(RaiUtilsProjectPath)' != '' and '$(RaiImageProjectPath)' != ''">true</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == ''">false</UseLocalRAIkeepSources>
-		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.5.5</OsLibPackageVersion>
-		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.5.5</RaiUtilsPackageVersion>
-		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.5.5</RaiImagePackageVersion>
+		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.5.6</OsLibPackageVersion>
+		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.5.6</RaiUtilsPackageVersion>
+		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.5.6</RaiImagePackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
