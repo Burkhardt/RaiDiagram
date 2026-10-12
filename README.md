@@ -1,10 +1,10 @@
 # RaiDiagram
 
-## 4.5.8
+## 4.5.9
 
-Coordinated 4.5.8 release; public behavior is aligned with the synchronized platform.
+Coordinated 4.5.9 release; public behavior is aligned with the synchronized platform.
 
-Latest release notes: [RaiDiagram 4.5.8 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiDiagram_RELEASE_NOTES_4.x.md#458).
+Latest release notes: [RaiDiagram 4.5.9 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiDiagram_RELEASE_NOTES_4.x.md#459).
 
 ## Previous Versions
 
@@ -15,13 +15,13 @@ For release notes and changelogs of earlier releases, see the [RaiDiagram 4.x Re
 ### .NET CLI
 
 ```bash
-dotnet add package RaiDiagram --version 4.5.8
+dotnet add package RaiDiagram --version 4.5.9
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiDiagram" Version="4.5.8" />
+<PackageReference Include="RaiDiagram" Version="4.5.9" />
 ```
 
 RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are agent-readable JSON5 manifests that keep semantic projection, model references, and presentation intent separate from application domain models.
