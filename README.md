@@ -4,27 +4,29 @@
 
 Coordinated 4.5.8 release; public behavior is aligned with the synchronized platform.
 
-Release notes: [RaiDiagram_RELEASE_NOTES_4.5.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.8.md).
+Latest release notes: [RaiDiagram 4.5.8 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiDiagram_RELEASE_NOTES_4.x.md#458).
 
-## 4.5.7
+## Previous Versions
 
-Coordinated 4.5.7 release; public behavior is aligned with the synchronized platform.
+For release notes and changelogs of earlier releases, see the [RaiDiagram 4.x Release Notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiDiagram_RELEASE_NOTES_4.x.md).
 
-Release notes: [RaiDiagram_RELEASE_NOTES_4.5.7.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.7.md).
+## Installation
 
-## 4.5.6
+### .NET CLI
 
-Coordinated 4.5.6 release; public behavior is aligned with the synchronized platform.
+```bash
+dotnet add package RaiDiagram --version 4.5.8
+```
 
-Release notes: [RaiDiagram_RELEASE_NOTES_4.5.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.6.md).
+### PackageReference
 
-## 4.5.5
+```xml
+<PackageReference Include="RaiDiagram" Version="4.5.8" />
+```
 
-Coordinated 4.5.5 release; public behavior is aligned with the synchronized platform.
+RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are agent-readable JSON5 manifests that keep semantic projection, model references, and presentation intent separate from application domain models.
 
-Release notes: [RaiDiagram_RELEASE_NOTES_4.5.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.5.md).
-
-### Object and deployment import (CR052)
+## Object and deployment import (CR052)
 
 ```plantuml
 @startuml Orders
@@ -57,230 +59,6 @@ Poseidon/OTW importer is available as `raid import-xmi file.xmi --list-diagrams`
 and `raid import-xmi file.xmi --diagram <id-or-name> --out ./artifacts --name Servers`.
 `import-otw` is an alias. It preserves drawing bounds and authored paths, without
 claiming complete legacy visual fidelity or support for other XMI diagram families.
-
-## 4.5.4
-
-Coordinated 4.5.4 release; public behavior is aligned with the synchronized platform.
-
-Release notes: [RaiDiagram_RELEASE_NOTES_4.5.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.4.md).
-
-## 4.5.3
-
-Coordinated 4.5.3 release; public behavior is aligned with the synchronized platform.
-
-Release notes: [RaiDiagram_RELEASE_NOTES_4.5.3.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.3.md).
-
-## 4.5.2
-
-Coordinated 4.5.2 release; public behavior is aligned with the synchronized platform.
-
-Release notes: [RaiDiagram_RELEASE_NOTES_4.5.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.2.md).
-
-## 4.5.0
-
-Coordinated 4.5.0 dependency alignment; diagram behavior is unchanged.
-
-Release notes: [RaiDiagram_RELEASE_NOTES_4.5.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.0.md).
-
-## 4.4.8
-
-Coordinated 4.4.8 dependency alignment; diagram behavior is unchanged.
-
-Release notes: [RaiDiagram_RELEASE_NOTES_4.4.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.8.md).
-
-
-RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are
-agent-readable JSON5 manifests that keep semantic projection, model references,
-and presentation intent separate from application domain models.
-
-## 4.4.6
-
-Participates in the synchronized 4.4.6 dependency line; diagram behavior is unchanged.
-
-Release notes: [RaiDiagram_RELEASE_NOTES_4.4.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.6.md).
-
-## 4.4.5
-
-RaiDiagram participates unchanged in the synchronized nine-package CR047
-release. Its fallback dependencies align to 4.4.5.
-
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.4.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.5.md).
-
-## 4.4.4
-
-RaiDiagram participates unchanged in the synchronized nine-package CR044
-release. Its fallback dependencies align to 4.4.4.
-
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.4.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.4.md).
-
-## 4.4.2
-
-RaiDiagram participates unchanged in the synchronized eight-package CR040/CR041
-release. Its fallback dependencies align to 4.4.2.
-
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.4.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.2.md).
-
-## 4.4.1
-
-RaiDiagram 4.4.1 implements accepted CR037. `DiagramArtifactManager` treats
-`.raid` as authoritative, derives PUML and SVG deterministically, refreshes only
-missing or stale ItemTree siblings, and leaves proven-current files untouched.
-Compiler-emitted PUML round-trips through `PlantUmlModelImporter` to an
-equivalent semantic manifest. `AimSvgProfile.Hydratable` emits structural
-`aim-*`, docking-port, and declared-expression metadata but never runtime
-`aim-satisfied` state; `Plain` omits hydration metadata.
-
-The command harness ships separately from the dedicated
-[`RaidSeeder`](https://github.com/Burkhardt/RaidSeeder) repository and installs
-the `raid` shell command.
-
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.4.1.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.4.1.md).
-
-## 4.3.2
-
-RaiDiagram 4.3.2 implements accepted CR027. `ClassDiagramBuilder.SetSuperClass(...)`
-materializes a typed superclass and emits a true UML generalization from the
-superclass to the derived class. The optional stereotype is rendered on the
-inheritance edge, while superclass and instance-of edges coexist in one class
-diagram. Existing builders that do not call `SetSuperClass(...)` retain their
-4.3.1 output.
-
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.3.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.3.2.md).
-
-## 4.3.1
-
-RaiDiagram 4.3.1 implements accepted CR026. `CapturedRevision` is preserved as
-an opaque exact string through typed builders, model snapshots, serialization,
-and hand-authored JSON5 `.raid` parsing. ISO-looking values retain their exact
-precision and offset instead of being converted through the current culture or
-machine time zone.
-
-`OneUseCaseDiagramBuilder.AddObjectReference(...)` now accepts an optional
-`stereotype`. Explicit verbs such as `produces` render directly as `«produces»`;
-omitting the argument preserves the established `«references {bucket}»` label.
-
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.3.1.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.3.1.md).
-
-## 4.3.0
-
-RaiDiagram 4.3.0 implements accepted CR025 with typed builders for one-use-case,
-role-filler/object, class, activity, and sequence diagrams. Builders expose the
-base `ItemId`, optional `ItemNumber`, and archetype `NameExt` separately while
-producing canonical diagram identities such as `SignContract_02_UCD`.
-
-The managed compiler injects `allowmixing` only for actual cross-grammar object
-mixtures, emits native activity and sequence syntax, and remains free of Java or
-Graphviz requirements. The optional server renderer is retained and its release
-suite requires the complete PlantUML 1.2026.8 CLI. `.raid`, `.puml`, config, and
-`.svg` files are co-located through `DiagramArtifactSet` and the existing
-`ItemTreePath` conventions.
-
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.3.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.3.0.md).
-
-## 4.2.11 (superseded before publication)
-
-This prepared line was not published; its CR023 changes are carried by v4.3.0.
-The PlantUML compiler renders
-typed and concise relationship kinds—including AIA's `Role` binding—with labels
-and cardinality. Mixed Activity/Object projections use `allowmixing` without
-flattening their declared element kinds. The compiler's exact accepted element
-and relationship vocabularies are public, while unknown constructs remain
-fail-closed.
-
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.2.11.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.11.md).
-
-## 4.2.10
-
-RaiDiagram participates unchanged in the coordinated `4.2.10` dependency line.
-Current notes:
-[RaiDiagram_RELEASE_NOTES_4.2.10.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.10.md).
-
-## 4.2.9
-
-RaiDiagram participates unchanged in the coordinated `4.2.9` CR022
-incident-correction line and consumes the hardened OsLibCore/RaiImage cloud
-filesystem boundary. Current notes:
-[RaiDiagram_RELEASE_NOTES_4.2.9.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.9.md).
-
-## 4.2.8
-
-RaiDiagram participates unchanged in the coordinated `4.2.8` CR021 dependency line.
-Current notes: [RaiDiagram_RELEASE_NOTES_4.2.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.8.md).
-
-## 4.2.7
-
-The coordinated `4.2.7` patch implements accepted CR020. `RaidFile`,
-`PumlSourceFile`, `PumlConfigFile`, `PumlStyleFile`, `PumlThemeFile`, and
-`DiagramArtifactSet` can be constructed around one `ItemTreePath`, keeping
-diagram and image artifacts under the same exact-ItemId ownership and movement
-contract.
-
-Current release notes:
-[RaiDiagram_RELEASE_NOTES_4.2.7.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.7.md).
-
-## 4.2.6
-
-The coordinated `4.2.6` patch adopts the accepted CR019 RaiUtils/RaiImage
-package line. Diagram behavior is unchanged from 4.2.5.
-
-Current release notes:
-[RaiDiagram_RELEASE_NOTES_4.2.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.6.md).
-
-## 4.2.5
-
-The coordinated `4.2.5` patch aligns RaiDiagram's fallback dependencies with
-the accepted CR017 package line. Diagram behavior is unchanged from 4.2.4.
-
-Current release notes:
-[RaiDiagram_RELEASE_NOTES_4.2.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.5.md).
-
-## 4.2.4
-
-The coordinated `4.2.4` patch adopts RaiImage's accepted CR016 Unicode-safe
-ImageTree placement and legacy lookup behavior. RaiDiagram's public manifest,
-semantic reconciliation, PlantUML compilation, and SVG provenance APIs are
-unchanged.
-
-Current release notes:
-[RaiDiagram_RELEASE_NOTES_4.2.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.4.md).
-
-## 4.2.3
-
-The coordinated `4.2.3` patch carries the accepted CR010/CR009 diagram surface
-forward on the CR015 dependency line. `DiagramModel.FromManifest(...)` and
-`DiagramDestination.CreateSubscriberRoot()` are public. Typed `.raid`, clean
-`.puml`, resolved `_config.puml`, and rendered image artifacts share the
-existing subscriber `ItemTreePath` placement without introducing identity
-management. Explicit local style locations, deterministic common/diagram-kind
-layering, default seeding, and SVG style provenance are supported through the
-real PlantUML `-config` path.
-
-Current release notes:
-[RaiDiagram_RELEASE_NOTES_4.2.3.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.2.3.md).
-
-## 4.2.0
-
-The initial `4.2.0` release implements approved CR009 and participates in the
-coordinated RAIkeep `4.2.0` release chain with OsLibCore, RaiUtils, and RaiImage.
-
-The first release provides:
-
-- role-first UML26 diagram semantics;
-- generic model-provider and structured reconciliation contracts;
-- deterministic semantic hashing;
-- PlantUML compilation and rendering through RaiImage; and
-- authoritative `.raid` identity and semantic hash metadata in rendered SVG.
-
-AIA implements its WWWA bridge in `AIA.Core`; RaiDiagram has no AIA, WWWA, or
-JsonPit dependency.
 
 ## End-to-end example
 
@@ -338,7 +116,3 @@ the [package-boundary ADR](https://github.com/Burkhardt/RAIkeep/blob/main/doc/AD
 the [subscriber artifact and style request](https://github.com/Burkhardt/RAIkeep/blob/main/doc/CR010_AfricaStage_to_RAIkeep_RaiDiagram_Subscriber_Scoped_Artifacts_and_Styles.md),
 the [subscriber placement and lookup ADR](https://github.com/Burkhardt/RAIkeep/blob/main/doc/ADR-0002-RaiDiagram-Subscriber-Scoped-Artifacts-and-Styles.md),
 and the [foldable API reference](https://github.com/Burkhardt/RaiDiagram/blob/main/API.md).
-
-## release notes
-
-- Latest release notes: [RaiDiagram_RELEASE_NOTES_4.5.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiDiagram_RELEASE_NOTES_4.5.8.md)
