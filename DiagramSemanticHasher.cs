@@ -35,6 +35,8 @@ public static class DiagramSemanticHasher
 					["elementId"] = item.ElementId
 				}))
 		};
+		if (manifest.Model.Domain is not null)
+			((JObject)semantic["model"]!)["domain"] = manifest.Model.Domain;
 
 		return CanonicalJson.CanonicalizeWithHash(semantic).Sha256;
 	}
@@ -55,7 +57,7 @@ public static class DiagramSemanticHasher
 				.Select(CreateElement)),
 			["relationships"] = new JArray(projection.Relationships
 				.OrderBy(item => item.Id, StringComparer.Ordinal)
-				.Select(item => AddDirection(item, new JObject
+				.Select(item => AddStereotype(item, AddDirection(item, new JObject
 				{
 					["id"] = item.Id,
 					["kind"] = item.Kind,
@@ -65,7 +67,7 @@ public static class DiagramSemanticHasher
 					["cardinality"] = item.Cardinality,
 					["guard"] = item.Guard,
 					["sourceReference"] = CreateReference(item.SourceReference)
-				}))),
+				})))),
 			["selectionRules"] = new JArray(projection.SelectionRules
 				.OrderBy(item => item.Id, StringComparer.Ordinal)
 				.Select(item => new JObject
@@ -80,6 +82,12 @@ public static class DiagramSemanticHasher
 	private static JObject AddDirection(DiagramRelationship relationship, JObject value)
 	{
 		if (relationship.Directed) value["directed"] = true;
+		return value;
+	}
+
+	private static JObject AddStereotype(DiagramRelationship relationship, JObject value)
+	{
+		if (relationship.Stereotype is not null) value["stereotype"] = relationship.Stereotype;
 		return value;
 	}
 

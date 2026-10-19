@@ -1,10 +1,11 @@
 # RaiDiagram
 
-## 4.5.10
+## 4.5.11
 
-Coordinated 4.5.10 release; public behavior is aligned with the synchronized platform.
+Edge stereotypes are first-class in `.raid`, PlantUML import and export, and
+hydratable SVG.
 
-Latest release notes: [RaiDiagram 4.5.10 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiDiagram_RELEASE_NOTES_4.x.md#4510).
+Latest release notes: [RaiDiagram 4.5.11 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiDiagram_RELEASE_NOTES_4.x.md#4511).
 
 ## Previous Versions
 
@@ -15,16 +16,30 @@ For release notes and changelogs of earlier releases, see the [RaiDiagram 4.x Re
 ### .NET CLI
 
 ```bash
-dotnet add package RaiDiagram --version 4.5.10
+dotnet add package RaiDiagram --version 4.5.11
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiDiagram" Version="4.5.10" />
+<PackageReference Include="RaiDiagram" Version="4.5.11" />
 ```
 
 RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are agent-readable JSON5 manifests that keep semantic projection, model references, and presentation intent separate from application domain models.
+
+## Edge stereotypes (CR064)
+
+`DiagramRelationship.Stereotype` stores an edge stereotype separately from its
+human-readable `Label`. `.raid` is the authoritative manifest; the PlantUML
+adapter emits `<<stereotype>>` and places a label on the next visual line when
+both are present. The deterministic SVG shows the stereotype and exposes it as
+`aim-stereotype` on hydratable edges. Legacy manifests without the property
+remain valid.
+
+PlantUML import reads edge stereotypes into this property without changing
+their spelling. An unmanaged `raid import --puml ... --out ...` requires
+`--domain <Domain>` so the imported vocabulary has an explicit context.
+Managed imports use their `--tenant` as the Domain.
 
 ## Object and deployment import (CR052)
 
@@ -40,7 +55,7 @@ customer --> order : places
 ```
 
 ```bash
-raid import --puml Orders.puml --out ./artifacts --name Orders --name-ext OD
+raid import --puml Orders.puml --out ./artifacts --domain Examples --name Orders --name-ext OD
 ```
 
 ObjectProperties preserves ordered text slot values in schema 1.1 and renders

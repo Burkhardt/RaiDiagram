@@ -91,6 +91,8 @@ public sealed class DiagramModelIdentity
 {
 	public string ProviderScheme { get; set; } = string.Empty;
 	public string ModelId { get; set; } = string.Empty;
+	/// <summary>Domain whose vocabulary gives imported semantic names their context.</summary>
+	public string? Domain { get; set; }
 	public string? CapturedRevision { get; set; }
 
 	public void Validate()
@@ -99,6 +101,8 @@ public sealed class DiagramModelIdentity
 			throw new RaidSchemaException("The diagram model requires a providerScheme.");
 		if (string.IsNullOrWhiteSpace(ModelId))
 			throw new RaidSchemaException("The diagram model requires a modelId.");
+		if (Domain is not null && string.IsNullOrWhiteSpace(Domain))
+			throw new RaidSchemaException("A diagram model domain cannot be empty.");
 	}
 }
 

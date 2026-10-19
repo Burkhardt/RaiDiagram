@@ -99,11 +99,19 @@ public sealed class DiagramRelationship
 	public string SourceId { get; set; } = string.Empty;
 	public string TargetId { get; set; } = string.Empty;
 	public string? Label { get; set; }
+	/// <summary>Semantic edge stereotype, preserving the source domain spelling without notation delimiters.</summary>
+	public string? Stereotype { get; set; }
 	public string? Cardinality { get; set; }
 	public bool Directed { get; set; }
 	public bool ShouldSerializeDirected() => Directed;
 	public string? Guard { get; set; }
 	public ModelElementReference? SourceReference { get; set; }
+
+	public DiagramRelationship WithStereotype(string? stereotype)
+	{
+		Stereotype = stereotype;
+		return this;
+	}
 }
 
 public sealed class DiagramProjection
@@ -258,6 +266,8 @@ public sealed class DiagramManifest
 		{
 			if (string.IsNullOrWhiteSpace(relationship.Id) || string.IsNullOrWhiteSpace(relationship.Kind))
 				throw new RaidSchemaException("Every diagram relationship requires an id and kind.");
+			if (relationship.Stereotype is not null && string.IsNullOrWhiteSpace(relationship.Stereotype))
+				throw new RaidSchemaException($"Relationship '{relationship.Id}' has an empty stereotype.");
 			if (!elements.TryGetValue(relationship.SourceId, out var source))
 				throw new RaidSchemaException(
 					$"Relationship '{relationship.Id}' refers to missing source '{relationship.SourceId}'.");

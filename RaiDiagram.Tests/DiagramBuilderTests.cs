@@ -24,10 +24,10 @@ public sealed class DiagramBuilderTests
 		Assert.Equal("allowmixing", Lines(source)[1]);
 		Assert.Contains("frame \"Contract Management\"", source);
 		Assert.Contains("actor \"BandLeader\"", source);
-		Assert.Contains("«executes» [1..1]", source);
-		Assert.Contains("«defines role» [0..1]", source);
-		Assert.Contains("«references What» [0..1]", source);
-		Assert.Contains("«DependsOn»", source);
+		Assert.Contains("<<executes>> [1..1]", source);
+		Assert.Contains("<<defines role>> [0..1]", source);
+		Assert.Contains("<<references What>> [0..1]", source);
+		Assert.Contains("<<DependsOn>>", source);
 		Assert.Contains("note right of", source);
 	}
 
@@ -61,16 +61,18 @@ public sealed class DiagramBuilderTests
 
 		var explicitRelationship = Assert.Single(explicitManifest.Projection.Relationships);
 		var defaultRelationship = Assert.Single(defaultManifest.Projection.Relationships);
-		Assert.Equal("«produces»", explicitRelationship.Label);
-		Assert.Equal("«references What»", defaultRelationship.Label);
+		Assert.Equal("produces", explicitRelationship.Stereotype);
+		Assert.Equal("references What", defaultRelationship.Stereotype);
+		Assert.Null(explicitRelationship.Label);
+		Assert.Null(defaultRelationship.Label);
 		Assert.Equal("0..*", explicitRelationship.Cardinality);
 		Assert.Equal("0..*", defaultRelationship.Cardinality);
 
 		var explicitSource = new PlantUmlDiagramCompiler().Compile(explicitManifest).Source;
 		var defaultSource = new PlantUmlDiagramCompiler().Compile(defaultManifest).Source;
-		Assert.Contains("«produces» [0..*]", explicitSource);
-		Assert.DoesNotContain("«references produces»", explicitSource);
-		Assert.Contains("«references What» [0..*]", defaultSource);
+		Assert.Contains("<<produces>> [0..*]", explicitSource);
+		Assert.DoesNotContain("<<references produces>>", explicitSource);
+		Assert.Contains("<<references What>> [0..*]", defaultSource);
 	}
 
 	[Fact]
@@ -115,7 +117,7 @@ public sealed class DiagramBuilderTests
 		Assert.Contains("Venue : Place [1..1] = TBD", source);
 		Assert.Contains("Schedule()", source);
 		Assert.Contains(" <|.. ", source);
-		Assert.Contains("«instanceOf»", source);
+		Assert.Contains("<<instanceOf>>", source);
 	}
 
 	[Fact]
@@ -140,7 +142,7 @@ public sealed class DiagramBuilderTests
 		Assert.Contains("class \"Agent\"", source);
 		Assert.Contains(" <|-- ", source);
 		Assert.Contains(" <|.. ", source);
-		Assert.Contains("«instanceOf»", source);
+		Assert.Contains("<<instanceOf>>", source);
 	}
 
 	[Fact]
@@ -153,9 +155,10 @@ public sealed class DiagramBuilderTests
 		var source = new PlantUmlDiagramCompiler().Compile(manifest).Source;
 
 		var relationship = Assert.Single(manifest.Projection.Relationships);
-		Assert.Equal("«subClassOf»", relationship.Label);
+		Assert.Equal("subClassOf", relationship.Stereotype);
+		Assert.Null(relationship.Label);
 		Assert.Contains(" <|-- ", source);
-		Assert.Contains(" : «subClassOf»", source);
+		Assert.Contains(" : <<subClassOf>>", source);
 	}
 
 	[Fact]

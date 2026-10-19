@@ -76,6 +76,7 @@ public abstract class DiagramBuilder
 			{
 				ProviderScheme = model.ProviderScheme,
 				ModelId = model.ModelId,
+				Domain = model.Domain,
 				CapturedRevision = model.CapturedRevision
 			}
 		};
@@ -120,7 +121,8 @@ public abstract class DiagramBuilder
 		string? label = null,
 		string? cardinality = null,
 		string? guard = null,
-		bool orderedStatement = false)
+		bool orderedStatement = false,
+		string? stereotype = null)
 	{
 		var relationship = new DiagramRelationship
 		{
@@ -129,6 +131,7 @@ public abstract class DiagramBuilder
 			SourceId = sourceId,
 			TargetId = targetId,
 			Label = label,
+			Stereotype = stereotype,
 			Cardinality = cardinality,
 			Guard = guard
 		};
@@ -166,13 +169,6 @@ public abstract class DiagramBuilder
 	{
 		Manifest.Validate();
 		return DiagramModel.FromManifest(Manifest).Manifest;
-	}
-
-	protected static string Stereotype(string value)
-	{
-		ArgumentException.ThrowIfNullOrWhiteSpace(value);
-		var trimmed = value.Trim();
-		return trimmed.StartsWith('«') && trimmed.EndsWith('»') ? trimmed : $"«{trimmed}»";
 	}
 
 	private static string ValidateBaseItemId(string value)
@@ -238,7 +234,7 @@ public sealed class OneUseCaseDiagramBuilder : DiagramBuilder
 		var useCase = RequireMainUseCase();
 		var role = AddElement($"initiating-role-{++roleCounter:D4}", DiagramElementKinds.Role, roleName.Trim());
 		AddRelationship(DiagramRelationshipKinds.RoleUseCase, role.Id, useCase.Id,
-			Stereotype(stereotype), cardinality);
+			cardinality: cardinality, stereotype: stereotype);
 		return this;
 	}
 
@@ -247,7 +243,7 @@ public sealed class OneUseCaseDiagramBuilder : DiagramBuilder
 		var useCase = RequireMainUseCase();
 		var role = AddElement($"defined-role-{++roleCounter:D4}", DiagramElementKinds.Role, roleName.Trim());
 		AddRelationship(DiagramRelationshipKinds.Dependency, useCase.Id, role.Id,
-			Stereotype("defines role"), cardinality);
+			cardinality: cardinality, stereotype: "defines role");
 		return this;
 	}
 
@@ -263,7 +259,7 @@ public sealed class OneUseCaseDiagramBuilder : DiagramBuilder
 			? $"references {bucket.Trim()}"
 			: stereotype;
 		AddRelationship(DiagramRelationshipKinds.Dependency, useCase.Id, target.Id,
-			Stereotype(relationshipStereotype), cardinality);
+			cardinality: cardinality, stereotype: relationshipStereotype);
 		return this;
 	}
 
@@ -272,7 +268,8 @@ public sealed class OneUseCaseDiagramBuilder : DiagramBuilder
 		var useCase = RequireMainUseCase();
 		var dependency = AddElement($"dependency-{++dependencyCounter:D4}", DiagramElementKinds.UseCase,
 			dependentUseCaseName.Trim());
-		AddRelationship(DiagramRelationshipKinds.Dependency, useCase.Id, dependency.Id, Stereotype("DependsOn"));
+		AddRelationship(DiagramRelationshipKinds.Dependency, useCase.Id, dependency.Id,
+			stereotype: "DependsOn");
 		return this;
 	}
 
@@ -416,7 +413,7 @@ public sealed class ClassDiagramBuilder : DiagramBuilder
 			DiagramRelationshipKinds.Generalization,
 			superClassElement.Id,
 			derivedClass.Id,
-			stereotype is null ? null : Stereotype(stereotype));
+			stereotype: stereotype);
 		return this;
 	}
 
@@ -425,7 +422,8 @@ public sealed class ClassDiagramBuilder : DiagramBuilder
 		var type = classElement ?? throw new RaidSchemaException("SetClass must be called before adding instances.");
 		var instance = AddElement($"instance-{++instanceCounter:D4}", DiagramElementKinds.Object,
 			$"<u>{objectId.Trim()}</u> : {className.Trim()}");
-		AddRelationship(DiagramRelationshipKinds.InstanceOf, type.Id, instance.Id, Stereotype("instanceOf"));
+		AddRelationship(DiagramRelationshipKinds.InstanceOf, type.Id, instance.Id,
+			stereotype: "instanceOf");
 		return this;
 	}
 

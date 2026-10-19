@@ -106,8 +106,19 @@ public static class AimSvg
 						.Select(point => $"{Number(point.X)},{Number(point.Y)}"))));
 				if (!string.IsNullOrWhiteSpace(relationship.Guard))
 					group.Add(new XAttribute("aim-expression", relationship.Guard));
+				if (!string.IsNullOrWhiteSpace(relationship.Stereotype))
+					group.Add(new XAttribute("aim-stereotype", relationship.Stereotype));
 			}
 			var label = relationship.Label ?? relationship.Guard;
+			if (!string.IsNullOrWhiteSpace(relationship.Stereotype))
+			{
+				var stereotype = relationship.Stereotype.Trim();
+				if (stereotype.StartsWith("<<", StringComparison.Ordinal) && stereotype.EndsWith(">>", StringComparison.Ordinal))
+					stereotype = stereotype[2..^2];
+				else if (stereotype.StartsWith('«') && stereotype.EndsWith('»'))
+					stereotype = stereotype[1..^1];
+				label = string.IsNullOrWhiteSpace(label) ? $"«{stereotype}»" : $"«{stereotype}» {label}";
+			}
 			if (!string.IsNullOrWhiteSpace(label))
 				group.Add(new XElement(Svg + "text",
 					new XAttribute("x", Number((startX + endX) / 2 + 5)),

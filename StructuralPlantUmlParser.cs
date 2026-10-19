@@ -182,6 +182,7 @@ internal sealed class StructuralPlantUmlParser
 		if (!aliases.ContainsKey(left) || !aliases.ContainsKey(right)) Fail("PUML004", line, "Relationship refers to an undeclared alias.");
 		var arrow = match.Groups["arrow"].Value;
 		var label = match.Groups["label"].Success ? match.Groups["label"].Value : null;
+		string? stereotype = null;
 		var kind = arrow switch
 		{
 			"<|--" or "--|>" => DiagramRelationshipKinds.Generalization,
@@ -193,19 +194,35 @@ internal sealed class StructuralPlantUmlParser
 		};
 		if (label?.StartsWith("<<", StringComparison.Ordinal) == true)
 		{
-			if (label == "<<include>>") kind = DiagramRelationshipKinds.Include;
-			else if (label == "<<extend>>") kind = DiagramRelationshipKinds.Extend;
-			else if (label is not ("<<TCP>>" or "<<http>>" or "<<DB Connect>>"))
-				Fail("PUML002", line, "Unknown relationship stereotype.");
+			var end = label.IndexOf(">>", 2, StringComparison.Ordinal);
+			if (end < 0 || end == 2) Fail("PUML002", line, "Relationship stereotype requires a name and closing '>>'.");
+			stereotype = label[2..end];
+			label = RemainingLabel(label[(end + 2)..]);
 		}
+		else if (label?.StartsWith('«') == true)
+		{
+			var end = label.IndexOf('»', 1);
+			if (end < 0 || end == 1) Fail("PUML002", line, "Relationship stereotype requires a name and closing '»'.");
+			stereotype = label[1..end];
+			label = RemainingLabel(label[(end + 1)..]);
+		}
+		if (stereotype == "include") kind = DiagramRelationshipKinds.Include;
+		else if (stereotype == "extend") kind = DiagramRelationshipKinds.Extend;
 		// Generalization uses parent -> child; realization uses implementing class -> interface.
 		if (arrow is "<--" or "<.." or "--|>") (left, right) = (right, left);
 		manifest.Projection.Relationships.Add(new DiagramRelationship
 		{
 			Id = $"relationship-{manifest.Projection.Relationships.Count + 1:D6}", Kind = kind,
 			Directed = kind == DiagramRelationshipKinds.Association && arrow is "-->" or "<--",
-			SourceId = left, TargetId = right, Label = label
+			SourceId = left, TargetId = right, Label = label, Stereotype = stereotype
 		});
+	}
+
+	private static string? RemainingLabel(string remainder)
+	{
+		var text = remainder.TrimStart();
+		if (text.StartsWith("\\n", StringComparison.Ordinal)) text = text[2..];
+		return text.Length == 0 ? null : text;
 	}
 
 	private void CheckBalancedQuotes(string text, int line)

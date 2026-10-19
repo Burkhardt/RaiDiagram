@@ -18,7 +18,8 @@ public sealed class DistributionDiagramBuilder : DiagramBuilder
 	public DistributionDiagramBuilder AddCommunication(string sourceId, string targetId, string protocol)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(protocol);
-		AddRelationship(DiagramRelationshipKinds.Association, sourceId, targetId, $"<<{protocol}>>");
+		AddRelationship(DiagramRelationshipKinds.Association, sourceId, targetId,
+			stereotype: protocol);
 		return this;
 	}
 	public DiagramManifest BuildManifest() => BuildSnapshot();

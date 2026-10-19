@@ -292,20 +292,45 @@ public sealed class PlantUmlDiagramCompiler
 			"Role" => (" --> ", (string?)null),
 			_ => throw new UnsupportedDiagramConstructException(relationship.Kind)
 		};
-		var label = relationship.Label ?? defaultLabel;
 		source.Append(aliases[relationship.SourceId]).Append(arrow).Append(aliases[relationship.TargetId]);
-		if (!string.IsNullOrWhiteSpace(label) || !string.IsNullOrWhiteSpace(relationship.Cardinality))
-		{
-			source.Append(" : ");
-			if (!string.IsNullOrWhiteSpace(label))
-				source.Append(EscapeLabel(label));
-			if (!string.IsNullOrWhiteSpace(relationship.Cardinality))
-			{
-				if (!string.IsNullOrWhiteSpace(label)) source.Append(' ');
-				source.Append('[').Append(EscapeLabel(relationship.Cardinality)).Append(']');
-			}
-		}
+		AppendRelationshipLabel(source, relationship, defaultLabel, includeCardinality: true);
 		source.AppendLine();
+	}
+
+	private static void AppendRelationshipLabel(
+		StringBuilder source,
+		DiagramRelationship relationship,
+		string? defaultLabel = null,
+		bool includeCardinality = false)
+	{
+		var hasStereotype = !string.IsNullOrWhiteSpace(relationship.Stereotype);
+		var label = relationship.Label ?? (hasStereotype ? null : defaultLabel);
+		var hasLabel = !string.IsNullOrWhiteSpace(label);
+		var hasCardinality = includeCardinality && !string.IsNullOrWhiteSpace(relationship.Cardinality);
+		if (!hasStereotype && !hasLabel && !hasCardinality) return;
+		source.Append(" : ");
+		if (hasStereotype)
+			source.Append("<<").Append(EscapeLabel(UnwrapStereotype(relationship.Stereotype!))).Append(">>");
+		if (hasLabel)
+		{
+			if (hasStereotype) source.Append("\\n");
+			source.Append(EscapeLabel(label!));
+		}
+		if (hasCardinality)
+		{
+			if (hasStereotype || hasLabel) source.Append(' ');
+			source.Append('[').Append(EscapeLabel(relationship.Cardinality!)).Append(']');
+		}
+	}
+
+	private static string UnwrapStereotype(string value)
+	{
+		var normalized = value.Trim();
+		while ((normalized.Length >= 2 && normalized[0] == '«' && normalized[^1] == '»')
+			|| (normalized.Length >= 4 && normalized.StartsWith("<<", StringComparison.Ordinal)
+				&& normalized.EndsWith(">>", StringComparison.Ordinal)))
+			normalized = normalized[0] == '«' ? normalized[1..^1] : normalized[2..^2];
+		return normalized;
 	}
 
 	private static PlantUmlCompilation CompileActivity(
@@ -425,8 +450,7 @@ public sealed class PlantUmlDiagramCompiler
 					_ => " -> "
 				};
 				source.Append(aliases[relationship.SourceId]).Append(arrow).Append(aliases[relationship.TargetId]);
-				if (!string.IsNullOrWhiteSpace(relationship.Label))
-					source.Append(" : ").Append(EscapeLabel(relationship.Label));
+				AppendRelationshipLabel(source, relationship);
 				source.AppendLine();
 				continue;
 			}
