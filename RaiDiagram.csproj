@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiDiagram</Title>
 		<PackageId>RaiDiagram</PackageId>
-		<Version>4.5.14</Version>
+		<Version>4.5.15</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<Description>Agent-readable semantic diagrams, model reconciliation, and PlantUML rendering for RAIkeep.</Description>
 		<TargetFramework>net10.0</TargetFramework>
@@ -21,7 +21,7 @@
 		<RepositoryUrl>https://github.com/Burkhardt/RaiDiagram.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<PackageReleaseNotes>CR064: first-class edge stereotypes in .raid, PlantUML import and export, and hydratable SVG.</PackageReleaseNotes>
+		<PackageReleaseNotes>Coordinated dependency alignment; diagram semantics and rendering behavior are unchanged.</PackageReleaseNotes>
 		<RAIkeepRoot Condition="'$(RAIkeepRoot)' == '' and Exists('../OsLib/OsLib.csproj')">..</RAIkeepRoot>
 		<OsLibProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/OsLib/OsLib.csproj')">$(RAIkeepRoot)/OsLib/OsLib.csproj</OsLibProjectPath>
 		<RaiUtilsProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj')">$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj</RaiUtilsProjectPath>
@@ -29,9 +29,9 @@
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">false</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(OsLibProjectPath)' != '' and '$(RaiUtilsProjectPath)' != '' and '$(RaiImageProjectPath)' != ''">true</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == ''">false</UseLocalRAIkeepSources>
-		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.5.14</OsLibPackageVersion>
-		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.5.14</RaiUtilsPackageVersion>
-		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.5.14</RaiImagePackageVersion>
+		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.5.15</OsLibPackageVersion>
+		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.5.15</RaiUtilsPackageVersion>
+		<RaiImagePackageVersion Condition="'$(RaiImagePackageVersion)' == ''">4.5.15</RaiImagePackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
