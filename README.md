@@ -1,11 +1,11 @@
 # RaiDiagram
 
-## 4.6.4
+## 4.6.5
 
 Edge stereotypes are first-class in `.raid`, PlantUML import and export, and
 hydratable SVG.
 
-Latest release notes: [RaiDiagram 4.6.4 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiDiagram_RELEASE_NOTES_4.x.md#464).
+Latest release notes: [RaiDiagram 4.6.5 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiDiagram_RELEASE_NOTES_4.x.md#465).
 
 ## Previous Versions
 
@@ -16,13 +16,13 @@ For release notes and changelogs of earlier releases, see the [RaiDiagram 4.x Re
 ### .NET CLI
 
 ```bash
-dotnet add package RaiDiagram --version 4.6.4
+dotnet add package RaiDiagram --version 4.6.5
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiDiagram" Version="4.6.4" />
+<PackageReference Include="RaiDiagram" Version="4.6.5" />
 ```
 
 RaiDiagram is RAIkeep's domain-neutral diagram package. Its `.raid` files are agent-readable JSON5 manifests that keep semantic projection, model references, and presentation intent separate from application domain models.
