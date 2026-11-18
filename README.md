@@ -1,5 +1,7 @@
 # RaiDiagram
 
+[Code signing policy](https://github.com/Burkhardt/RAIkeep/blob/main/README_codesigning.md)
+
 ## 4.6.5
 
 Edge stereotypes are first-class in `.raid`, PlantUML import and export, and
