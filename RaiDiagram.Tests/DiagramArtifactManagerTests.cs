@@ -83,6 +83,35 @@ public sealed class DiagramArtifactManagerTests : IDisposable
 		Assert.Equal(authoritativeBefore, artifacts.RaidManifest.ReadAllText());
 	}
 
+	[Theory]
+	[InlineData("\n")]
+	[InlineData("\r\n")]
+	public void Refresh_PreservesCurrentDerivativesWithEitherLineEnding(string newline)
+	{
+		var artifacts = Artifacts();
+		artifacts.RaidManifest.SaveManifest(TestDiagrams.CreateUseCaseModel().Manifest);
+		var manager = new DiagramArtifactManager();
+		manager.Refresh(artifacts);
+		RaiFile[] files = [artifacts.PlantUmlSource, artifacts.Svg];
+		var contents = files.Select(file => File.ReadAllText(file.FullName)
+			.ReplaceLineEndings(newline)).ToArray();
+		var timestamps = files.Select((file, index) =>
+		{
+			File.WriteAllText(file.FullName, contents[index]);
+			File.SetLastWriteTimeUtc(file.FullName, DateTime.UtcNow.AddDays(-1));
+			return file.LastWriteTimeUtc;
+		}).ToArray();
+
+		var result = manager.Refresh(artifacts);
+
+		Assert.False(result.Changed);
+		for (var index = 0; index < files.Length; index++)
+		{
+			Assert.Equal(contents[index], File.ReadAllText(files[index].FullName));
+			Assert.Equal(timestamps[index], files[index].LastWriteTimeUtc);
+		}
+	}
+
 	[Fact]
 	public void Refresh_ReplacesStaleDerivativesFromChangedAuthoritativeManifest()
 	{

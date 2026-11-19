@@ -122,7 +122,7 @@ public sealed class DiagramArtifactManager
 	private static bool WriteIfChanged(TextFile file, string expected)
 	{
 		var persisted = PersistedContent(expected);
-		if (file.Exists() && string.Equals(file.ReadAllText(), persisted, StringComparison.Ordinal))
+		if (file.Exists() && string.Equals(NormalizeLineEndings(file.ReadAllText()), persisted, StringComparison.Ordinal))
 			return false;
 		Write(file, expected);
 		return true;
@@ -130,9 +130,7 @@ public sealed class DiagramArtifactManager
 
 	private static TextFile Write(TextFile file, string contents)
 	{
-		var normalized = contents.Replace("\r\n", "\n", StringComparison.Ordinal)
-			.Replace('\r', '\n')
-			.TrimEnd('\n');
+		var normalized = NormalizeLineEndings(contents).TrimEnd('\n');
 		file.Lines = normalized.Split('\n').ToList();
 		file.Changed = true;
 		file.Save();
@@ -140,9 +138,10 @@ public sealed class DiagramArtifactManager
 	}
 
 	private static string PersistedContent(string contents)
-		=> contents.Replace("\r\n", "\n", StringComparison.Ordinal)
-			.Replace('\r', '\n')
-			.TrimEnd('\n') + "\n";
+		=> NormalizeLineEndings(contents).TrimEnd('\n') + "\n";
+
+	private static string NormalizeLineEndings(string contents)
+		=> contents.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
 
 	private static void EnsureIdentity(DiagramArtifactSet artifacts, DiagramManifest manifest)
 	{
