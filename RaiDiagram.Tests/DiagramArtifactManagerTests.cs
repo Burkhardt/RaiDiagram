@@ -93,12 +93,12 @@ public sealed class DiagramArtifactManagerTests : IDisposable
 		var manager = new DiagramArtifactManager();
 		manager.Refresh(artifacts);
 		RaiFile[] files = [artifacts.PlantUmlSource, artifacts.Svg];
-		var contents = files.Select(file => File.ReadAllText(file.FullName)
+		var contents = files.Select(file => new TextFile(file.FullName).ReadAllText()
 			.ReplaceLineEndings(newline)).ToArray();
 		var timestamps = files.Select((file, index) =>
 		{
-			File.WriteAllText(file.FullName, contents[index]);
-			File.SetLastWriteTimeUtc(file.FullName, DateTime.UtcNow.AddDays(-1));
+			new TextFile(file.FullName).WriteAllText(contents[index]);
+			file.LastWriteTimeUtc = DateTimeOffset.UtcNow.AddDays(-1);
 			return file.LastWriteTimeUtc;
 		}).ToArray();
 
@@ -107,7 +107,7 @@ public sealed class DiagramArtifactManagerTests : IDisposable
 		Assert.False(result.Changed);
 		for (var index = 0; index < files.Length; index++)
 		{
-			Assert.Equal(contents[index], File.ReadAllText(files[index].FullName));
+			Assert.Equal(contents[index], new TextFile(files[index].FullName).ReadAllText());
 			Assert.Equal(timestamps[index], files[index].LastWriteTimeUtc);
 		}
 	}

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Linq;
+using OsLib;
 
 namespace RaiDiagram;
 
@@ -71,7 +72,7 @@ public sealed class XmiDeploymentImporter
 		if (graphNodes.Length == 0) throw new RaidSchemaException("XMI003: The selected diagram contains no visible host or component nodes.");
 		var needed = graphNodes.Concat(graphEdges).Select(e => Ref(Semantic(e)!)!).ToHashSet(StringComparer.Ordinal);
 		var semantics = ReadSemantics(path, needed);
-		using var stream = File.OpenRead(path);
+		using var stream = new RaiFile(path).OpenRead();
 		var revision = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
 		var manifest = new DiagramManifest
 		{

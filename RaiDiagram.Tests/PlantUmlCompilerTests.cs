@@ -60,7 +60,7 @@ public class PlantUmlCompilerTests
 	[Fact]
 	public void PumlThemeFile_UsesPlantUmlLocalThemeNamingConvention()
 	{
-		var theme = new PumlThemeFile(new RaiPath("themes"), "raikeep-sketch");
+		var theme = new PumlThemeFile(Os.TempDir / "themes", "raikeep-sketch");
 
 		Assert.Equal("raikeep-sketch", theme.ThemeName);
 		Assert.Equal("puml-theme-raikeep-sketch.puml", theme.NameWithExtension);

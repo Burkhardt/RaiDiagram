@@ -413,7 +413,7 @@ public sealed class PlantUmlRendererTests : IDisposable
 
 	private static string? ConfigureRealPlantUml()
 	{
-		var configuredJar = Environment.GetEnvironmentVariable("RAIDIAGRAM_PLANTUML_JAR");
+		var configuredJar = Os.RunSwitch("RAIDIAGRAM_PLANTUML_JAR");
 		if (string.IsNullOrWhiteSpace(configuredJar))
 			return null;
 
@@ -439,7 +439,7 @@ public sealed class PlantUmlRendererTests : IDisposable
 
 	private static bool IsRequired()
 	{
-		var value = Environment.GetEnvironmentVariable("RAIDIAGRAM_REQUIRE_REAL_PLANTUML");
+		var value = Os.RunSwitch("RAIDIAGRAM_REQUIRE_REAL_PLANTUML");
 		return value is not null && (value.Equals("1", StringComparison.Ordinal)
 			|| value.Equals("true", StringComparison.OrdinalIgnoreCase)
 			|| value.Equals("yes", StringComparison.OrdinalIgnoreCase));

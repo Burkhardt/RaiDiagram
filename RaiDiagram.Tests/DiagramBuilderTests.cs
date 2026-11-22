@@ -262,7 +262,9 @@ public sealed class DiagramBuilderTests
 	[Fact]
 	public void Builder_RejectsBaseItemIdThatAlreadyContainsAnArchetypeSeam()
 	{
+#pragma warning disable RAI016 // Verify the constructor rejects a pre-suffixed base item ID.
 		Assert.Throws<RaidSchemaException>(() => new OneUseCaseDiagramBuilder("SignContract_UCD", Model()));
+#pragma warning restore RAI016
 	}
 
 	[Fact]

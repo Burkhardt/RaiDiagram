@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using OsLib;
 
 namespace RaiDiagram.Tests;
 
@@ -7,10 +8,10 @@ public sealed class XmiDeploymentImportTests
 	[Fact]
 	public void RepeatedViewsRelativeBoundsResidencyAndExactWaypointsSurviveRoundTrip()
 	{
-		var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".xmi");
+		var path = new RaiFile(new RaiPath(Os.TempDir.FullPath), Guid.NewGuid() + ".xmi").FullName;
 		try
 		{
-			File.WriteAllText(path, Fixture());
+			new TextFile(path).WriteAllText(Fixture());
 			var importer = new XmiDeploymentImporter();
 			Assert.Equal("DeploymentDiagram", Assert.Single(importer.ListDiagrams(path)).Type);
 			var manifest = importer.Import(path).Manifest;
@@ -30,19 +31,19 @@ public sealed class XmiDeploymentImportTests
 			Assert.Equal(derived.Raid, new DiagramArtifactManager().Derive(importer.Import(path).Manifest).Raid);
 			Assert.Contains("component \"OrderService\"", derived.PlantUml);
 		}
-		finally { File.Delete(path); }
+		finally { new RaiFile(path).rm(); }
 	}
 
 	[Fact]
 	public void ExternalEntitiesAreRejected()
 	{
-		var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".xmi");
+		var path = new RaiFile(new RaiPath(Os.TempDir.FullPath), Guid.NewGuid() + ".xmi").FullName;
 		try
 		{
-			File.WriteAllText(path, "<!DOCTYPE XMI [<!ENTITY value SYSTEM 'file:///does-not-exist'>]><XMI>&value;</XMI>");
+			new TextFile(path).WriteAllText("<!DOCTYPE XMI [<!ENTITY value SYSTEM 'file:///does-not-exist'>]><XMI>&value;</XMI>");
 			Assert.Throws<System.Xml.XmlException>(() => new XmiDeploymentImporter().ListDiagrams(path));
 		}
-		finally { File.Delete(path); }
+		finally { new RaiFile(path).rm(); }
 	}
 
 	private static string Fixture()

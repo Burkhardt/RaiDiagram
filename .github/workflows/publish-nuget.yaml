@@ -18,7 +18,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
@@ -43,8 +43,7 @@ jobs:
       - name: Install Graphviz for PlantUML verification
         shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes graphviz
+          bash scripts/install-ubuntu-packages.sh graphviz
           dot -V
 
       - name: Install pinned PlantUML CLI 1.2026.8

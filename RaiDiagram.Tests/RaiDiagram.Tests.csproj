@@ -45,4 +45,10 @@
 			CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<!-- Compiler tooling only. The previously released analyzer keeps the release graph acyclic. -->
+	<ItemGroup>
+		<PackageDownload Include="RaiGuard.Analyzer" Version="[4.6.7]" />
+		<Analyzer Include="$(NuGetPackageRoot)/raiguard.analyzer/4.6.7/analyzers/dotnet/cs/RaiGuard.Core.dll" />
+	</ItemGroup>
+
 </Project>
